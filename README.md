@@ -20,11 +20,11 @@
 - 使用了基于 layui 的 Fly 前端框架，链接：[Fly社区](https://fly.layui.com/)，[Layui模板官网](https://fly.layui.com/store/)
 - 将页面头部、导航栏、左边、右边和底部模块进行抽离
 
-![](C:\Users\sxl\AppData\Roaming\Typora\typora-user-images\image-20200705201434451.png)
+![](https://gitee.com/xlshi/blog_img/raw/master/img/20200705223829.png)
 
 - 使用 MyBatisPlus 自动生成插件生成了数据库对应的实体类、Mapper 接口和 Service 接口实现类
 
-  ![](C:\Users\sxl\AppData\Roaming\Typora\typora-user-images\image-20200705201316035.png)
+  ![](https://gitee.com/xlshi/blog_img/raw/master/img/20200705223832.png)
 
 - 引入 MyBatisPlus 分页插件，Spring Boot 配置分页插件代码如下：
 
