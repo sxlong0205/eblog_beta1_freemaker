@@ -7,11 +7,11 @@
 
 #### 软件架构
 软件架构说明
-JDK 1.8
-IDEA 2020
-MySQL 8.0
-layui
-MybatisPlus
+- JDK 1.8
+- IDEA 2020
+- MySQL 8.0
+- layui
+- MybatisPlus
 
 
 #### 安装教程
