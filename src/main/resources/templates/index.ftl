@@ -1,7 +1,8 @@
-<#include "./inc/layout.ftl"/>
+<#include "inc/layout.ftl"/>
 
 <@layout "首页">
-<#include "./inc/header-panel.ftl"/>
+<#include "inc/header.ftl"/>
+<#include "inc/header-panel.ftl"/>
 <div class="layui-container">
     <div class="layui-row layui-col-space15">
         <div class="layui-col-md8">
@@ -498,7 +499,7 @@
             </div>
         </div>
 
-        <#include "/inc/right.ftl"/>
+        <#include "inc/right.ftl"/>
     </div>
 </div>
 </@layout>
