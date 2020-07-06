@@ -3,7 +3,7 @@
 # eblog_beta1
 
 #### 介绍
-该项目为一个博客项目，前端利用Freemarker渲染引擎搭建，后台使用SpringBoot搭建。
+该项目为一个博客项目，基于MarkerHub的[eblog](https://github.com/MarkerHub/eblog)项目实现，前端利用Freemarker渲染引擎搭建，后台使用SpringBoot搭建。
 
 #### 软件架构
 软件架构说明
