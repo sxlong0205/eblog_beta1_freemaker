@@ -1,5 +1,6 @@
 package codedragon.eblog.mapper;
 
+import codedragon.eblog.VO.PostVo;
 import codedragon.eblog.entity.Post;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
@@ -12,7 +13,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * <p>
- *  Mapper 接口
+ * Mapper 接口
  * </p>
  *
  * @author CodeDragon
@@ -21,5 +22,7 @@ import org.springframework.stereotype.Component;
 @Component
 public interface PostMapper extends BaseMapper<Post> {
 
-    IPage selectPosts(Page page,@Param(Constants.WRAPPER) QueryWrapper wrapper);
+    IPage selectPosts(Page page, @Param(Constants.WRAPPER) QueryWrapper wrapper);
+
+    PostVo selectOnePost(@Param(Constants.WRAPPER) QueryWrapper<Post> wrapper);
 }

@@ -1,9 +1,9 @@
 spring:
   datasource:
 #    driver-class-name: com.mysql.cj.jdbc.Driver
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/eblog
+    driver-class-name: com.p6spy.engine.spy.P6SpyDriver
+    url: jdbc:p6spy:mysql://localhost:3306/eblog
     username: root
-    password: 密码
+    password: 3570
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**Mapper.xml

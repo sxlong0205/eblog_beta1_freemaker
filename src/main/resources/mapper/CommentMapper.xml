@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="codedragon.eblog.mapper.CommentMapper">
-
+<select id="selectComments" resultType="codedragon.eblog.VO.CommentVo">
+    select c.*,
+       u.id       as authorId,
+       u.username as authorName,
+       u.avatar   as authorAvatar
+    from comment c
+    left join user u on c.user_id = u.id
+    ${ew.customSqlSegment}
+</select>
 </mapper>
