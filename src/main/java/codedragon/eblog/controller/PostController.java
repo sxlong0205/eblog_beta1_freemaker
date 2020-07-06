@@ -35,6 +35,9 @@ public class PostController extends BaseController {
         PostVo vo = postService.selectOnePost(new QueryWrapper<Post>().eq("p.id", id));
         Assert.notNull(vo, "文章已被删除");
 
+        postService.putViewCount(vo);
+
+
         /**
          * 1， 分页
          * 2. 文章id

@@ -21,6 +21,9 @@ public class ContextStartup implements ApplicationRunner, ServletContextAware {
 
     ServletContext servletContext;
 
+    @Autowired
+    PostService postService;
+
     //项目一启动就调用的方法
     @Override
     public void run(ApplicationArguments args) throws Exception {
@@ -28,6 +31,7 @@ public class ContextStartup implements ApplicationRunner, ServletContextAware {
                 .eq("status", 0)
         );
         servletContext.setAttribute("categorys", categories);
+        postService.initWeekRank();
     }
 
     @Override

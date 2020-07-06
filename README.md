@@ -222,6 +222,82 @@ public class PostTemplate extends TemplateDirective {
 
 ![](https://gitee.com/xlshi/blog_img/raw/master/img/20200706113218.png)
 
+- 使用 Redis 缓存实现本周热议功能
+
+1. 使用到的命令
+
+   1. `ZADD` :将一个或多个 `member` 元素及其 `score` 值加入到有序集 `key` 当中
+
+      ```shell
+      ZADD day:18 10 post:1
+      ZADD day:19 10 post:1
+      ZADD day:20 10 post:1
+      ZADD day:18 6 post:2
+      ZADD day:19 6 post:2
+      ZADD day:20 6 post:2
+      ```
+
+   2. `ZREVRANGE`:返回有序集 `key` 中，指定区间内的成员，其中成员的位置按 `score` 值递减(从大到小)来排列
+
+      ```shell
+      127.0.0.1:6379> ZREVRANGE day:18 0 -1 withscores
+      1) "post:1"
+      2) "10"
+      3) "post:2"
+      4) "6"
+      ```
+
+   3. `ZUNIONSTORE`:计算给定的一个或多个有序集的并集，其中给定 `key` 的数量必须以 `numkeys` 参数指定，并将该并集(结果集)储存到 `destination`
+
+      ```shell
+      127.0.0.1:6379> ZUNIONSTORE week:rank 3 day:20 day:19 day:18
+      (integer) 2
+      127.0.0.1:6379> keys *
+      1) "day:20"
+      2) "day:18"
+      3) "week:rank"
+      4) "day:19"
+      ```
+
+   4. `ZINCRBY`:为有序集 `key` 的成员 `member` 的 `score` 值加上增量 `increment` 
+
+      ```shell
+      127.0.0.1:6379> ZINCRBY day:18 10 post:1
+      "20"
+      ```
+
+2. 通过 RedisConfig 配置序列化方式
+
+```java
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
+
+@Configuration
+public class RedisConfig {
+    @Bean
+    public RedisTemplate redisTemplate(RedisConnectionFactory redisConnectionFactory) {
+        RedisTemplate<Object, Object> template = new RedisTemplate();
+        template.setConnectionFactory(redisConnectionFactory);
+
+        Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer(Object.class);
+        jackson2JsonRedisSerializer.setObjectMapper(new ObjectMapper());
+
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setValueSerializer(jackson2JsonRedisSerializer);
+
+        template.setHashKeySerializer(new StringRedisSerializer());
+        template.setHashValueSerializer(jackson2JsonRedisSerializer);
+
+        return template;
+    }
+}
+```
+
 
 
 

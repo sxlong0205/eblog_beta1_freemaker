@@ -5,5 +5,8 @@ spring:
     url: jdbc:p6spy:mysql://localhost:3306/eblog
     username: root
     password: 3570
+  redis:
+    host: localhost
+    port: 6379
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**Mapper.xml

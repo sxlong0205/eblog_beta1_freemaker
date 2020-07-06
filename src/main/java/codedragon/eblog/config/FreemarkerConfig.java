@@ -1,6 +1,7 @@
 package codedragon.eblog.config;
 
 
+import codedragon.eblog.template.HotsTemplate;
 import codedragon.eblog.template.PostTemplate;
 import codedragon.eblog.template.TimeAgoMethod;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,10 +16,13 @@ public class FreemarkerConfig {
     private freemarker.template.Configuration configuration;
     @Autowired
     PostTemplate postTemplate;
+    @Autowired
+    HotsTemplate hotsTemplate;
 
     @PostConstruct
     public void setUp() {
         configuration.setSharedVariable("timeAgo", new TimeAgoMethod());
         configuration.setSharedVariable("posts", postTemplate);
+        configuration.setSharedVariable("hots", hotsTemplate);
     }
 }
