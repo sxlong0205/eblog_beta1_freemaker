@@ -53,6 +53,6 @@
 
 #### 使用说明
 
-将该项目克隆到本地，修改application.yml文件中的数据库连接信息，创建eblog数据库，即可在localhost:8080端口运行该项目
+将该项目克隆到本地，修改application.yml文件中的数据库连接信息，创建eblog数据库(SQL脚本在resources下的SQL目录)，即可在localhost:8080端口运行该项目
 
 
