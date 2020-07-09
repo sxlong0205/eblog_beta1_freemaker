@@ -10,6 +10,7 @@
         <link rel="stylesheet" href="/res/layui/css/layui.css">
         <link rel="stylesheet" href="/res/css/global.css">
         <script src="/res/layui/layui.js"></script>
+        <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.js"></script>
     </head>
     <body>
 
@@ -21,7 +22,7 @@
     <#include "/inc/footer.ftl"/>
 
     <script>
-        layui.cache.page = '';
+        // layui.cache.page = '';
         layui.cache.user = {
             username: '游客'
             ,uid: -1

@@ -298,13 +298,1236 @@ public class RedisConfig {
 }
 ```
 
+### Day3
+
+- 增加登陆注册功能
+
+1. 完善 login.ftl 和 reg.ftl 页面
+
+login.ftl
+
+```html
+<#include "/inc/layout.ftl"/>
+<@layout "登陆">
+    <div class="layui-container fly-marginTop">
+        <div class="fly-panel fly-panel-user" pad20>
+            <div class="layui-tab layui-tab-brief" lay-filter="user">
+                <ul class="layui-tab-title">
+                    <li class="layui-this">登入</li>
+                    <li><a href="reg.ftl">注册</a></li>
+                </ul>
+                <div class="layui-form layui-tab-content" id="LAY_ucm" style="padding: 20px 0;">
+                    <div class="layui-tab-item layui-show">
+                        <div class="layui-form layui-form-pane">
+                            <form method="post">
+                                <div class="layui-form-item">
+                                    <label for="L_email" class="layui-form-label">邮箱</label>
+                                    <div class="layui-input-inline">
+                                        <input type="text" id="L_email" name="email" required lay-verify="required"
+                                               autocomplete="off" class="layui-input">
+                                    </div>
+                                </div>
+                                <div class="layui-form-item">
+                                    <label for="L_pass" class="layui-form-label">密码</label>
+                                    <div class="layui-input-inline">
+                                        <input type="password" id="L_pass" name="pass" required lay-verify="required"
+                                               autocomplete="off" class="layui-input">
+                                    </div>
+                                </div>
+                                <div class="layui-form-item">
+                                    <label for="L_vercode" class="layui-form-label">人类验证</label>
+                                    <div class="layui-input-inline">
+                                        <input type="text" id="L_vercode" name="vercode" required lay-verify="required"
+                                               placeholder="请回答后面的问题" autocomplete="off" class="layui-input">
+                                    </div>
+                                    <div class="layui-form-mid">
+                                        <span style="color: #c00;">{{d.vercode}}</span>
+                                    </div>
+                                </div>
+                                <div class="layui-form-item">
+                                    <button class="layui-btn" lay-filter="*" lay-submit>立即登录</button>
+                                    <span style="padding-left:20px;">
+                  <a href="forget.html">忘记密码？</a>
+                </span>
+                                </div>
+                                <div class="layui-form-item fly-form-app">
+                                    <span>或者使用社交账号登入</span>
+                                    <a href="" onclick="layer.msg('正在通过QQ登入', {icon:16, shade: 0.1, time:0})"
+                                       class="iconfont icon-qq" title="QQ登入"></a>
+                                    <a href="" onclick="layer.msg('正在通过微博登入', {icon:16, shade: 0.1, time:0})"
+                                       class="iconfont icon-weibo" title="微博登入"></a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/res/layui/layui.js"></script>
+    <script>
+        layui.cache.page = 'user';
+    </script>
+</@layout>
+```
+
+reg.ftl
+
+```html
+<#include "/inc/layout.ftl"/>
+<@layout "注册">
+    <div class="layui-container fly-marginTop">
+        <div class="fly-panel fly-panel-user" pad20>
+            <div class="layui-tab layui-tab-brief" lay-filter="user">
+                <ul class="layui-tab-title">
+                    <li><a href="login.ftl">登入</a></li>
+                    <li class="layui-this">注册</li>
+                </ul>
+                <div class="layui-form layui-tab-content" id="LAY_ucm" style="padding: 20px 0;">
+                    <div class="layui-tab-item layui-show">
+                        <div class="layui-form layui-form-pane">
+                            <form method="post">
+                                <div class="layui-form-item">
+                                    <label for="L_email" class="layui-form-label">邮箱</label>
+                                    <div class="layui-input-inline">
+                                        <input type="text" id="L_email" name="email" required lay-verify="email"
+                                               autocomplete="off" class="layui-input">
+                                    </div>
+                                    <div class="layui-form-mid layui-word-aux">将会成为您唯一的登入名</div>
+                                </div>
+                                <div class="layui-form-item">
+                                    <label for="L_username" class="layui-form-label">昵称</label>
+                                    <div class="layui-input-inline">
+                                        <input type="text" id="L_username" name="username" required
+                                               lay-verify="required" autocomplete="off" class="layui-input">
+                                    </div>
+                                </div>
+                                <div class="layui-form-item">
+                                    <label for="L_pass" class="layui-form-label">密码</label>
+                                    <div class="layui-input-inline">
+                                        <input type="password" id="L_pass" name="pass" required lay-verify="required"
+                                               autocomplete="off" class="layui-input">
+                                    </div>
+                                    <div class="layui-form-mid layui-word-aux">6到16个字符</div>
+                                </div>
+                                <div class="layui-form-item">
+                                    <label for="L_repass" class="layui-form-label">确认密码</label>
+                                    <div class="layui-input-inline">
+                                        <input type="password" id="L_repass" name="repass" required
+                                               lay-verify="required" autocomplete="off" class="layui-input">
+                                    </div>
+                                </div>
+                                <div class="layui-form-item">
+                                    <label for="L_vercode" class="layui-form-label">人类验证</label>
+                                    <div class="layui-input-inline">
+                                        <input type="text" id="L_vercode" name="vercode" required lay-verify="required"
+                                               placeholder="请回答后面的问题" autocomplete="off" class="layui-input">
+                                    </div>
+                                    <div class="layui-form-mid">
+                                        <span style="color: #c00;">{{d.vercode}}</span>
+                                    </div>
+                                </div>
+                                <div class="layui-form-item">
+                                    <button class="layui-btn" lay-filter="*" lay-submit>立即注册</button>
+                                </div>
+                                <div class="layui-form-item fly-form-app">
+                                    <span>或者直接使用社交账号快捷注册</span>
+                                    <a href="" onclick="layer.msg('正在通过QQ登入', {icon:16, shade: 0.1, time:0})"
+                                       class="iconfont icon-qq" title="QQ登入"></a>
+                                    <a href="" onclick="layer.msg('正在通过微博登入', {icon:16, shade: 0.1, time:0})"
+                                       class="iconfont icon-weibo" title="微博登入"></a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <script>
+        layui.cache.page = 'user';
+    </script>
+</@layout>
+
+```
+
+2. 添加 AuthController
+
+```java
+@Controller
+public class AuthController extends BaseController {
+    @GetMapping("/login")
+    public String login(){
+        return "/auth/login";
+    }
+
+    @GetMapping("/register")
+    public String register(){
+        return "/auth/reg";
+    }
+}
+```
+
+- 添加图片验证码功能
+
+1. 引入 Maven 依赖
+
+```xml
+<!--验证码-->
+<dependency>
+    <groupId>com.github.axet</groupId>
+    <artifactId>kaptcha</artifactId>
+    <version>0.0.9</version>
+</dependency>
+```
+
+2. 添加 KaptchaConfig 配置类
+
+```java
+@Configuration
+public class KaptchaConfig {
+    @Bean
+    public DefaultKaptcha producer() {
+        Properties propertis = new Properties();
+        propertis.put("kaptcha.border", "no");
+        propertis.put("kaptcha.image.height", "38");
+        propertis.put("kaptcha.image.width", "150");
+        propertis.put("kaptcha.textproducer.font.color", "black");
+        propertis.put("kaptcha.textproducer.font.size", "32");
+        Config config = new Config(propertis);
+        DefaultKaptcha defaultKaptcha = new DefaultKaptcha();
+        defaultKaptcha.setConfig(config);
+
+        return defaultKaptcha;
+    }
+}
+```
+
+3. 在 AuthController 中添加相应方法
+
+```java
+    @Autowired
+    Producer producer;
+
+    @GetMapping("/capthca.jpg")
+    public void kaptcha(HttpServletResponse resp) throws IOException {
+        //验证码
+        String text = producer.createText();
+        BufferedImage image = producer.createImage(text);
+
+        resp.setHeader("Cache-Control", "no-store, nocache");
+        resp.setContentType("image/jpeg");
+        ServletOutputStream outputStream = resp.getOutputStream();
+        ImageIO.write(image, "jpg", outputStream);
+    }
+```
+
+4. 前端 JS 实现点击刷新验证码功能
+
+```javascript
+<div>
+    <img id="capthca" src="/capthca.jpg">
+</div>
+
+$("#capthca").click(function () {
+    this.src = "/capthca.jpg";
+})
+```
+
+5. 编写统一返回结果 Result 类
+
+```java
+@Data
+public class Result implements Serializable {
+    //状态码 0代表成功 -1代表失败
+    private int status;
+
+    private String msg;
+
+    //返回结果
+    private Object data;
+
+    private String action;
+
+    //操作失败返回结果
+    public static Result fail(String msg, Object data) {
+        Result result = new Result();
+        result.status = -1;
+        result.msg = msg;
+        result.data = null;
+        return result;
+    }
+
+    //操作成功返回结果
+    public static Result success(Object data) {
+        return Result.success("操作成功", data);
+    }
+    public static Result success() {
+        return Result.success("操作成功", null);
+    }
+
+    public static Result success(String msg, Object data) {
+        Result result = new Result();
+        result.status = 0;
+        result.msg = msg;
+        result.data = data;
+        return result;
+    }
+
+    //返回指定跳转页面
+    public Result action(String action){
+        this.action = action;
+        return this;
+    }
+}
+```
 
 
 
+- 引入 Hibernate Validator 进行表单校验
+
+1. 引入 ValidationUtil 工具类，这个类直接从网上 copy 哈
+
+```java
+public class ValidationUtil {
+
+    /**
+     * 开启快速结束模式 failFast (true)
+     */
+    private static Validator validator = Validation.byProvider(HibernateValidator.class).configure().failFast(false).buildValidatorFactory().getValidator();
+    /**
+     * 校验对象
+     *
+     * @param t bean
+     * @param groups 校验组
+     * @return ValidResult
+     */
+    public static <T> ValidResult validateBean(T t,Class<?>...groups) {
+        ValidResult result = new ValidationUtil().new ValidResult();
+        Set<ConstraintViolation<T>> violationSet = validator.validate(t,groups);
+        boolean hasError = violationSet != null && violationSet.size() > 0;
+        result.setHasErrors(hasError);
+        if (hasError) {
+            for (ConstraintViolation<T> violation : violationSet) {
+                result.addError(violation.getPropertyPath().toString(), violation.getMessage());
+            }
+        }
+        return result;
+    }
+    /**
+     * 校验bean的某一个属性
+     *
+     * @param obj          bean
+     * @param propertyName 属性名称
+     * @return ValidResult
+     */
+    public static <T> ValidResult validateProperty(T obj, String propertyName) {
+        ValidResult result = new ValidationUtil().new ValidResult();
+        Set<ConstraintViolation<T>> violationSet = validator.validateProperty(obj, propertyName);
+        boolean hasError = violationSet != null && violationSet.size() > 0;
+        result.setHasErrors(hasError);
+        if (hasError) {
+            for (ConstraintViolation<T> violation : violationSet) {
+                result.addError(propertyName, violation.getMessage());
+            }
+        }
+        return result;
+    }
+    /**
+     * 校验结果类
+     */
+    @Data
+    public class ValidResult {
+
+        /**
+         * 是否有错误
+         */
+        private boolean hasErrors;
+
+        /**
+         * 错误信息
+         */
+        private List<ErrorMessage> errors;
+
+        public ValidResult() {
+            this.errors = new ArrayList<>();
+        }
+        public boolean hasErrors() {
+            return hasErrors;
+        }
+
+        public void setHasErrors(boolean hasErrors) {
+            this.hasErrors = hasErrors;
+        }
+
+        /**
+         * 获取所有验证信息
+         * @return 集合形式
+         */
+        public List<ErrorMessage> getAllErrors() {
+            return errors;
+        }
+        /**
+         * 获取所有验证信息
+         * @return 字符串形式
+         */
+        public String getErrors(){
+            StringBuilder sb = new StringBuilder();
+            for (ErrorMessage error : errors) {
+                sb.append(error.getPropertyPath()).append(":").append(error.getMessage()).append(" ");
+            }
+            return sb.toString();
+        }
+
+        public void addError(String propertyName, String message) {
+            this.errors.add(new ErrorMessage(propertyName, message));
+        }
+    }
+
+    @Data
+    public class ErrorMessage {
+
+        private String propertyPath;
+
+        private String message;
+
+        public ErrorMessage() {
+        }
+
+        public ErrorMessage(String propertyPath, String message) {
+            this.propertyPath = propertyPath;
+            this.message = message;
+        }
+    }
+```
+
+2. 使用 Hibernate Validator 对属性值进行校验
+
+```java
+/**
+ * 昵称
+ */
+@NotBlank(message = "用户名不能为空")
+private String username;
+
+/**
+ * 密码
+ */
+@NotBlank(message = "密码不能为空")
+private String password;
+
+/**
+ * 邮件
+ */
+@Email
+@NotBlank(message = "邮件不能为空")
+private String email;
+```
+
+3. 在 AuthController 中编写方法进行注册校验
+
+```java
+@ResponseBody
+@PostMapping("/register")
+public Result doRegister(User user, String repass, String vercode) {
+
+    //校验用户输入是否合法
+    ValidationUtil.ValidResult validResult = ValidationUtil.validateBean(user);
+    if (validResult.hasErrors())
+        return Result.fail(validResult.getErrors());
+
+    //校验密码
+    if (!user.getPassword().equals(repass))
+        return Result.fail("两次输入密码不相同");
+
+    //获取并校验验证码
+    String capthca = (String) req.getSession().getAttribute(KAPTCHA_SESSION_KEY);
+    System.out.println(capthca);
+    if (vercode == null || !vercode.equalsIgnoreCase(capthca))
+        return Result.fail("验证码输入不正确");
+    return Result.success().action("/login");
+}
+```
+
+- 注册功能
+
+1.  UserServiceImpl 验证用户名和密码是否已经被注册
+2. 使用 hutool 自带md5加密对用户密码进行加密
+
+```java
+//注册功能实现
+@Override
+public Result register(User user) {
+    //判断用户名邮箱是否已经被注册
+    int count = this.count(new QueryWrapper<User>()
+            .eq("email", user.getEmail())
+            .or()
+            .eq("username", user.getUsername()));
+    if (count > 0) return Result.fail("用户名或邮箱已被占用");
+
+    User temp = new User();
+    temp.setUsername(user.getUsername());
+    temp.setPassword(SecureUtil.md5(user.getPassword()));
+    temp.setEmail(user.getEmail());
+
+    temp.setCreated(new Date());
+    temp.setPoint(0);
+    temp.setVipLevel(0);
+    temp.setCommentCount(0);
+    temp.setPostCount(0);
+    this.save(temp);
+    return Result.success();
+}
+```
+
+- 注册功能
+
+1. 集成 Shiro 权限框架，引入 Maven 依赖
+
+```xml
+<!--集成Shiro权限框架-->
+<dependency>
+    <groupId>org.apache.shiro</groupId>
+    <artifactId>shiro-spring</artifactId>
+    <version>1.4.0</version>
+</dependency>
+<dependency>
+    <groupId>net.mingsoft</groupId>
+    <artifactId>shiro-freemarker-tags</artifactId>
+    <version>0.1</version>
+</dependency>
+```
+
+2. 添加 ShiroConfig 配置类
+
+```java
+@Slf4j
+@Configuration
+public class ShiroConfig {
+    //配置安全中心
+    @Bean
+    public SecurityManager securityManager(AccountRealm accountRealm) {
+        DefaultWebSecurityManager securityManager = new DefaultWebSecurityManager();
+        securityManager.setRealm(accountRealm);
+        log.info("---------------->securityManager注入成功");
+        return securityManager;
+    }
+
+    //配置拦截器
+    @Bean
+    public ShiroFilterFactoryBean shiroFilterFactoryBean(SecurityManager securityManager) {
+        ShiroFilterFactoryBean filterFactoryBean = new ShiroFilterFactoryBean();
+        filterFactoryBean.setSecurityManager(securityManager);
+        // 配置登录的url和登录成功的url
+        filterFactoryBean.setLoginUrl("/login");
+        filterFactoryBean.setSuccessUrl("/user/center");
+        // 配置未授权跳转页面
+        filterFactoryBean.setUnauthorizedUrl("/error/403");
+
+        Map<String, String> hashMap = new LinkedHashMap<>();
+        hashMap.put("/login", "anon");
+        filterFactoryBean.setFilterChainDefinitionMap(hashMap);
+
+        return filterFactoryBean;
+    }
+}
+```
+
+3. 登陆操作返回属性 AccountProfile 类
+
+```java
+public class AccountProfile implements Serializable {
+    private String username;
+    private String email;
+    private Data created;
+}
+```
+
+4.  AccountRealm 实现权限和角色的自动检查
+
+```java
+@Component
+public class AccountRealm extends AuthorizingRealm {
+
+    @Autowired
+    UserService userService;
+
+    @Override
+    protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principalCollection) {
+        return null;
+    }
+
+    @Override
+    protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
+        UsernamePasswordToken usernamePasswordToken = (UsernamePasswordToken) token;
+        AccountProfile profile = userService.login(usernamePasswordToken.getUsername(), String.valueOf(usernamePasswordToken.getPassword()));
+        SimpleAuthenticationInfo info = new SimpleAuthenticationInfo(profile, token.getCredentials(), getName());
+        return info;
+    }
+}
+```
+
+5. 在 UserServiceImpl 实现登陆功能
+
+```java
+@Override
+public AccountProfile login(String email, String password) {
+    User user = this.getOne(new QueryWrapper<User>().eq("email", email));
+    if (user == null)
+        throw new UnknownAccountException();
+    if (!user.getPassword().equals(password))
+        throw new IncorrectCredentialsException();
+
+    user.setLasted(new Date());
+    this.updateById(user);
+    AccountProfile profile = new AccountProfile();
+    BeanUtils.copyProperties(user, profile);
+    return profile;
+}
+```
+
+- 退出功能
+
+1. 更新 header.ftl 页面
+
+```html
+<div class="fly-header layui-bg-black">
+    <div class="layui-container">
+        <a class="fly-logo" href="/">
+            <img src="https://www.markerhub.com/dist/images/logo/markerhub-logo.png" alt="MarkerHub" style="height: 41px;">
+        </a>
+        <ul class="layui-nav fly-nav layui-hide-xs">
+            <li class="layui-nav-item layui-this">
+                <a href="/"><i class="iconfont icon-jiaoliu"></i>主页</a>
+            </li>
+            <li class="layui-nav-item">
+                <a target="_blank" href="https://mp.weixin.qq.com/s/lR5LC5GnD2Gs59ecV5R0XA"><i class=""></i>最新企业面试题</a>
+            </li>
+        </ul>
+
+        <ul class="layui-nav fly-nav-user">
+
+            <@shiro.guest>
+                <!-- 未登入的状态 -->
+                <li class="layui-nav-item">
+                    <a class="iconfont icon-touxiang layui-hide-xs" href="/login"></a>
+                </li>
+                <li class="layui-nav-item">
+                    <a href="/login">登入</a>
+                </li>
+                <li class="layui-nav-item">
+                    <a href="/register">注册</a>
+                </li>
+                <li class="layui-nav-item layui-hide-xs">
+                    <a href="/app/qq/" onclick="layer.msg('正在通过QQ登入', {icon:16, shade: 0.1, time:0})" title="QQ登入" class="iconfont icon-qq"></a>
+                </li>
+                <li class="layui-nav-item layui-hide-xs">
+                    <a href="/app/weibo/" onclick="layer.msg('正在通过微博登入', {icon:16, shade: 0.1, time:0})" title="微博登入" class="iconfont icon-weibo"></a>
+                </li>
+            </@shiro.guest>
+
+            <@shiro.user>
+                <!-- 登入后的状态 -->
+                <li class="layui-nav-item">
+                    <a class="fly-nav-avatar" href="javascript:;">
+                        <cite class="layui-hide-xs"><@shiro.principal property="username" /></cite>
+                        <i class="iconfont icon-renzheng layui-hide-xs" title="认证信息：layui 作者"></i>
+                        <img src="<@shiro.principal property="avatar" />">
+                    </a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="/user/set"><i class="layui-icon">&#xe620;</i>基本设置</a></dd>
+                        <dd><a href="/user/mess"><i class="iconfont icon-tongzhi" style="top: 4px;"></i>我的消息</a></dd>
+                        <dd><a href="/user/home"><i class="layui-icon" style="margin-left: 2px; font-size: 22px;">&#xe68e;</i>我的主页</a></dd>
+                        <hr style="margin: 5px 0;">
+                        <dd><a href="/user/logout/" style="text-align: center;">退出</a></dd>
+                    </dl>
+                </li>
+            </@shiro.user>
+        </ul>
+    </div>
+</div>
+```
+
+2. 实现退出功能
+
+```java
+//退出功能
+@RequestMapping("/user/logout")
+public String logout(){
+    SecurityUtils.getSubject().logout();
+    return "redirect:/";
+}
+```
+
+- 我的主页功能
+
+1. 在 BaseController 获取用户信息
+
+```java
+//从Shiro中获取用户信息
+protected AccountProfile getProfile(){
+    return (AccountProfile) SecurityUtils.getSubject().getPrincipal();
+}
+
+//获取用户ID
+protected Long getProfileId(){
+    return getProfile().getId();
+}
+```
+
+2. 在 UserController 中实现方法
+
+```java
+//实现个人主页功能
+@GetMapping("/user/home")
+public String home() {
+    User user = userService.getById(getProfileId());
+    List<Post> posts = postService.list(new QueryWrapper<Post>()
+            .eq("user_id", getProfileId())
+            .orderByDesc("created"));
+    req.setAttribute("user", user);
+    req.setAttribute("posts", posts);
+    return "/user/home";
+}
+```
+
+3. 在 ShiroConfig 中添加拦截器
+
+```java
+hashMap.put("/user/home", "authc");
+```
+
+4. home.ftl
+
+```html
+<#include "/inc/layout.ftl"/>
+
+<@layout "我的主页">
+    <div class="fly-home fly-panel" style="background-image: url();">
+        <img src="${user.avatar}" alt="${user.username}">
+        <i class="iconfont icon-renzheng" title="Fly社区认证"></i>
+        <h1>
+            ${user.username}
+            <i class="iconfont icon-nan"></i>
+            <!-- <i class="iconfont icon-nv"></i>  -->
+            <i class="layui-badge fly-badge-vip">VIP3</i>
+            <!--
+            <span style="color:#c00;">（管理员）</span>
+            <span style="color:#5FB878;">（社区之光）</span>
+            <span>（该号已被封）</span>
+            -->
+        </h1>
+
+        <p style="padding: 10px 0; color: #5FB878;">认证信息：layui 作者</p>
+
+        <p class="fly-home-info">
+            <i class="iconfont icon-kiss" title="飞吻"></i><span style="color: #FF7200;">66666 飞吻</span>
+            <i class="iconfont icon-shijian"></i><span>${user.created?string('yyyy-MM-dd')} 加入</span>
+            <i class="iconfont icon-chengshi"></i><span>来自地球</span>
+        </p>
+
+        <p class="fly-home-sign">（${user.sign!'这个人好懒，什么都没留下！'}）</p>
+
+        <div class="fly-sns" data-user="">
+            <a href="javascript:;" class="layui-btn layui-btn-primary fly-imActive" data-type="addFriend">加为好友</a>
+            <a href="javascript:;" class="layui-btn layui-btn-normal fly-imActive" data-type="chat">发起会话</a>
+        </div>
+
+    </div>
+
+    <div class="layui-container">
+        <div class="layui-row layui-col-space15">
+            <div class="layui-col-md6 fly-home-jie">
+                <div class="fly-panel">
+                    <h3 class="fly-panel-title">${user.username} 最近的提问</h3>
+                    <ul class="jie-row">
+                        <#list posts as post>
+                            <#if !posts>
+                                <div class="fly-none" style="min-height: 50px; padding:30px 0; height:auto;">
+                                    <i style="font-size:14px;">没有发表任何求解</i>
+                                </div>
+                            </#if>
+                            <li>
+                                <#if post.recommend><span class="fly-jing">精</span></#if>
+                                <a href="/post/${post.id}" class="jie-title"> ${post.title}</a>
+                                <i>${timeAgo(post.created)}</i>
+                                <em class="layui-hide-xs">${post.viewCount}阅/${post.commentCount}答</em>
+                            </li>
+                        </#list>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="layui-col-md6 fly-home-da">
+                <div class="fly-panel">
+                    <h3 class="fly-panel-title">${user.username} 最近的回答</h3>
+                    <ul class="home-jieda">
+                        <div class="fly-none" style="min-height: 50px; padding:30px 0; height:auto;">
+                            <span>没有回答任何问题</span></div>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        layui.cache.page = 'user';
+    </script>
+</@layout>
+```
+
+- 用户基本设置页面功能实现
+
+1. 在 UserController 中实现方法
+
+```java
+//用户设置页面
+@GetMapping("/user/set")
+public String set() {
+    User user = userService.getById(getProfileId());
+    req.setAttribute("user", user);
+    return "/user/set";
+}
+```
+
+2. 在 ShiroConfig 中添加拦截器
+
+```java
+hashMap.put("/user/set", "authc");
+```
+
+3. set.ftl
+
+```html
+<#include "/inc/layout.ftl"/>
+
+<@layout "基本设置">
+    <div class="layui-container fly-marginTop fly-user-main">
+        <#--        <@centerLeft level=2></@centerLeft>-->
+        <ul class="layui-nav layui-nav-tree layui-inline" lay-filter="uesr">
+            <li class="layui-nav-item">
+                <a href="/user/home">
+                    <i class="layui-icon">&#xe609;</i>
+                    我的主页
+                </a>
+            </li>
+            <li class="layui-nav-item">
+                <a href="/user/index">
+                    <i class="layui-icon">&#xe612;</i>
+                    用户中心
+                </a>
+            </li>
+            <li class="layui-nav-item">
+                <a href="/user/set">
+                    <i class="layui-icon">&#xe620;</i>
+                    基本设置
+                </a>
+            </li>
+            <li class="layui-nav-item">
+                <a href="/user/message">
+                    <i class="layui-icon">&#xe611;</i>
+                    我的消息
+                </a>
+            </li>
+        </ul>
+
+        <div class="site-tree-mobile layui-hide">
+            <i class="layui-icon">&#xe602;</i>
+        </div>
+        <div class="site-mobile-shade"></div>
+
+        <div class="site-tree-mobile layui-hide">
+            <i class="layui-icon">&#xe602;</i>
+        </div>
+        <div class="site-mobile-shade"></div>
+
+
+        <div class="fly-panel fly-panel-user" pad20>
+            <div class="layui-tab layui-tab-brief" lay-filter="user">
+                <ul class="layui-tab-title" id="LAY_mine">
+                    <li class="layui-this" lay-id="info">我的资料</li>
+                    <li lay-id="avatar">头像</li>
+                    <li lay-id="pass">密码</li>
+                    <li lay-id="bind">帐号绑定</li>
+
+                    <@shiro.hasRole name="admin">
+                        <li lay-id="es">同步ES</li>
+                    </@shiro.hasRole>
+                </ul>
+                <div class="layui-tab-content" style="padding: 20px 0;">
+                    <div class="layui-form layui-form-pane layui-tab-item layui-show">
+                        <form method="post">
+                            <div class="layui-form-item">
+                                <label for="L_email" class="layui-form-label">邮箱</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" id="L_email" name="email" required lay-verify="email"
+                                           autocomplete="off" value="${user.email}" class="layui-input" readonly>
+                                </div>
+                                <div class="layui-form-mid layui-word-aux">如果您在邮箱已激活的情况下，变更了邮箱，需<a href="activate.html"
+                                                                                                   style="font-size: 12px; color: #4f99cf;">重新验证邮箱</a>。
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label for="L_username" class="layui-form-label">昵称</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" id="L_username" name="username" required lay-verify="required"
+                                           value="${user.username}" autocomplete="off" class="layui-input">
+                                </div>
+                                <div class="layui-inline">
+                                    <div class="layui-input-inline">
+                                        <input type="radio" name="sex" <#if user.gender =='0'>checked</#if>
+                                               title="男">
+                                        <input type="radio" name="sex" <#if user.gender =='1'>checked</#if>
+                                               title="女">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="layui-form-item layui-form-text">
+                                <label for="L_sign" class="layui-form-label">签名</label>
+                                <div class="layui-input-block">
+                                    <textarea placeholder="随便写些什么刷下存在感" id="L_sign" name="sign" autocomplete="off"
+                                              class="layui-textarea" style="height: 80px;"></textarea>
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <button class="layui-btn" key="set-mine" lay-filter="*" lay-submit alert="true"
+                                        reload="true" alert="true" reload="true ">确认修改
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="layui-form layui-form-pane layui-tab-item">
+                        <div class="layui-form-item">
+                            <div class="avatar-add">
+                                <p>建议尺寸168*168，支持jpg、png、gif，最大不能超过50KB</p>
+                                <button type="button" class="layui-btn upload-img">
+                                    <i class="layui-icon">&#xe67c;</i>上传头像
+                                </button>
+                                <img src="<@shiro.principal property="avatar" />">
+                                <span class="loading"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="layui-form layui-form-pane layui-tab-item">
+                        <form action="/user/" method="post">
+                            <div class="layui-form-item">
+                                <label for="L_nowpass" class="layui-form-label">当前密码</label>
+                                <div class="layui-input-inline">
+                                    <input type="password" id="L_nowpass" name="nowpass" required lay-verify="required"
+                                           autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label for="L_pass" class="layui-form-label">新密码</label>
+                                <div class="layui-input-inline">
+                                    <input type="password" id="L_pass" name="pass" required lay-verify="required"
+                                           autocomplete="off" class="layui-input">
+                                </div>
+                                <div class="layui-form-mid layui-word-aux">6到16个字符</div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label for="L_repass" class="layui-form-label">确认密码</label>
+                                <div class="layui-input-inline">
+                                    <input type="password" id="L_repass" name="repass" required lay-verify="required"
+                                           autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <button class="layui-btn" key="set-mine" lay-filter="*" lay-submit alert="true"
+                                        reload="true">确认修改
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="layui-form layui-form-pane layui-tab-item">
+                        <ul class="app-bind">
+                            <li class="fly-msg app-havebind">
+                                <i class="iconfont icon-qq"></i>
+                                <span>已成功绑定，您可以使用QQ帐号直接登录Fly社区，当然，您也可以</span>
+                                <a href="javascript:;" class="acc-unbind" type="qq_id">解除绑定</a>
+
+                                <!-- <a href="" onclick="layer.msg('正在绑定微博QQ', {icon:16, shade: 0.1, time:0})" class="acc-bind" type="qq_id">立即绑定</a>
+                                <span>，即可使用QQ帐号登录Fly社区</span> -->
+                            </li>
+                            <li class="fly-msg">
+                                <i class="iconfont icon-weibo"></i>
+                                <!-- <span>已成功绑定，您可以使用微博直接登录Fly社区，当然，您也可以</span>
+                                <a href="javascript:;" class="acc-unbind" type="weibo_id">解除绑定</a> -->
+
+                                <a href="" class="acc-weibo" type="weibo_id"
+                                   onclick="layer.msg('正在绑定微博', {icon:16, shade: 0.1, time:0})">立即绑定</a>
+                                <span>，即可使用微博帐号登录Fly社区</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <@shiro.hasRole name="admin">
+                        <div class="layui-form layui-form-pane layui-tab-item">
+                            <form action="/admin/initEsData" method="post">
+                                <button class="layui-btn" key="set-mine" lay-filter="*" lay-submit alert="true">同步ES数据
+                                </button>
+                            </form>
+                        </div>
+                    </@shiro.hasRole>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        layui.cache.page = 'user';
+    </script>
+</@layout>
+```
+
+4. 修改 /res/mods/index.js 下的实现点击保存后重新刷新页面
+
+```javascript
+//表单提交
+form.on('submit(*)', function(data){
+  var action = $(data.form).attr('action'), button = $(data.elem);
+  fly.json(action, data.field, function(res){
+    var end = function(){
+      if(res.action){
+        location.href = res.action;
+      }
+      if (button.attr('reload')){
+        location.reload();
+      }
+      // else {
+      //   fly.form[action||button.attr('key')](data.field, data.form);
+      // }
+    };
+    if(res.status == 0){
+      button.attr('alert') ? layer.alert(res.msg, {
+        icon: 1,
+        time: 10*1000,
+        end: end
+      }) : end();
+    };
+  });
+  return false;
+});
+```
+
+5. 在 UserController 中实现相应方法
+
+```java
+@ResponseBody
+@PostMapping("/user/set")
+public Result doSet(User user) {
+    if (StrUtil.isBlank(user.getUsername()))
+        return Result.fail("昵称不能为空");
+    int count = userService.count(new QueryWrapper<User>()
+            .eq("username", getProfile().getUsername())
+            .ne("id", getProfileId())
+    );
+
+    //用户名不能重复
+    if (count > 0)
+        return Result.fail("该昵称已被占用");
+
+    //将用户更新的值入库
+    User temp = userService.getById(getProfileId());
+    temp.setUsername(user.getUsername());
+    temp.setGender(user.getGender());
+    temp.setSign(user.getSign());
+    userService.updateById(temp);
+
+    //更新Shiro中的用户信息
+    AccountProfile profile = getProfile();
+    profile.setUsername(temp.getUsername());
+    profile.setSign(temp.getSign());
+
+    return Result.success().action("/user/set#info");
+}
+```
+
+6. 实现用户头像上传功能
+
+   1. 修改 set.ftl
+
+   ```html
+   <div class="layui-form layui-form-pane layui-tab-item">
+       <div class="layui-form-item">
+           <div class="avatar-add">
+               <p>建议尺寸168*168，支持jpg、png、gif，最大不能超过50KB</p>
+               <button type="button" class="layui-btn upload-img">
+                   <i class="layui-icon">&#xe67c;</i>上传头像
+               </button>
+               <img src="<@shiro.principal property="avatar" />">
+               <span class="loading"></span>
+           </div>
+       </div>
+   </div>
+   ```
+
+   2. 编写 UploadUtil 上传工具类
+
+   ```java
+   @Slf4j
+   @Component
+   public class UploadUtil {
+       @Autowired
+       Consts consts;
+   
+       public final static String type_avatar = "avatar";
+   
+       public Result upload(String type, MultipartFile file) throws IOException {
+   
+           if(StrUtil.isBlank(type) || file.isEmpty()) {
+               return Result.fail("上传失败");
+           }
+   
+           // 获取文件名
+           String fileName = file.getOriginalFilename();
+           log.info("上传的文件名为：" + fileName);
+           // 获取文件的后缀名
+           String suffixName = fileName.substring(fileName.lastIndexOf("."));
+           log.info("上传的后缀名为：" + suffixName);
+           // 文件上传后的路径
+           String filePath = consts.getUploadDir();
+   
+           if ("avatar".equalsIgnoreCase(type)) {
+               AccountProfile profile = (AccountProfile) SecurityUtils.getSubject().getPrincipal();
+               fileName = "/avatar/avatar_" + profile.getId() + suffixName;
+   
+           } else if ("post".equalsIgnoreCase(type)) {
+               fileName = "/post/post_" + DateUtil.format(new Date(), DatePattern.PURE_DATETIME_MS_PATTERN) + suffixName;
+           }
+   
+           File dest = new File(filePath + fileName);
+           // 检测是否存在目录
+           if (!dest.getParentFile().exists()) {
+               dest.getParentFile().mkdirs();
+           }
+           try {
+               file.transferTo(dest);
+               log.info("上传成功后的文件路径未：" + filePath + fileName);
+   
+               String path = filePath + fileName;
+               String url = "/upload" + fileName;
+   
+               log.info("url ---> {}", url);
+   
+               return Result.success(url);
+           } catch (IllegalStateException e) {
+               e.printStackTrace();
+           } catch (IOException e) {
+               e.printStackTrace();
+           }
+   
+           return Result.success(null);
+       }
+   }
+   ```
+
+   3. 配置通用功能 Consts 类
+
+   ```java
+   @Slf4j
+   @Component
+   @Data
+   public class Consts {
+       @Value("${file.upload.dir}")
+       private String uploadDir;
+   }
+   ```
+
+   4. 在 application.yml 中配置文件存放路径
+
+   ```yml
+   file:
+     upload:
+       dir: ${user.dir}/upload
+   ```
+
+   5. 在 UserController 中编写对应方法
+
+   ```java
+   //用户上传头像
+   @ResponseBody
+   @PostMapping("/user/upload")
+   public Result uploadAvatar(@RequestParam(value = "file") MultipartFile file) throws IOException {
+       return uploadUtil.upload(UploadUtil.type_avatar, file);
+   }
+   ```
+
+   6. 在 doSet 方法中更新用户头像信息
+
+   ```java
+   //更新用户头像
+   if (StrUtil.isNotBlank(user.getAvatar())) {
+       User temp = userService.getById(getProfileId());
+       temp.setAvatar(user.getAvatar());
+       userService.updateById(temp);
+   
+       AccountProfile profile = getProfile();
+       profile.setAvatar(temp.getAvatar());
+       return Result.success().action("/user/set#avatar");
+   }
+   ```
+
+   7. 在 ShiroConfig 中添加过滤器
+
+   ```java
+   hashMap.put("/user/upload", "authc");
+   ```
+
+   8. 配置用户上传图片的路径 MvcConfig
+
+   ```java
+   @Configuration
+   public class MvcConfig implements WebMvcConfigurer {
+       @Autowired
+       Consts consts;
+   
+       @Override
+       public void addResourceHandlers(ResourceHandlerRegistry registry) {
+           registry.addResourceHandler("/upload/avatar/**")
+                   .addResourceLocations("file:///" + consts.getUploadDir() + "/avatar/");
+       }
+   }
+   ```
+
+7. 实现更新密码功能
+
+   1. 编写 UserController 中的更新密码方法
+
+   ```java
+       @ResponseBody
+       @PostMapping("/user/repass")
+       public Result repass(String nowpass, String pass, String repass) {
+           if(!pass.equals(repass)) {
+               return Result.fail("两次密码不相同");
+           }
+   
+           User user = userService.getById(getProfileId());
+   
+           String nowPassMd5 = SecureUtil.md5(nowpass);
+           if(!nowPassMd5.equals(user.getPassword())) {
+               return Result.fail("密码不正确");
+           }
+   
+           user.setPassword(SecureUtil.md5(pass));
+           userService.updateById(user);
+   
+           return Result.success().action("/user/set#pass");
+   
+       }
+   ```
+
+   
 
 
 
-#### 使用说明
+#### 使用说明 
 
 将该项目克隆到本地，修改application.yml文件中的数据库连接信息，创建eblog数据库(SQL脚本在resources下的SQL目录)，即可在localhost:8080端口运行该项目
 

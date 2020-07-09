@@ -553,9 +553,13 @@ layui.define(['layer', 'laytpl', 'form', 'element', 'upload', 'util'], function(
       var end = function(){
         if(res.action){
           location.href = res.action;
-        } else {
-          fly.form[action||button.attr('key')](data.field, data.form);
         }
+        if (button.attr('reload')){
+          location.reload();
+        }
+        // else {
+        //   fly.form[action||button.attr('key')](data.field, data.form);
+        // }
       };
       if(res.status == 0){
         button.attr('alert') ? layer.alert(res.msg, {
