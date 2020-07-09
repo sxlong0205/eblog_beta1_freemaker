@@ -1,7 +1,9 @@
 package codedragon.eblog.controller;
 
+import codedragon.eblog.entity.UserMessage;
 import codedragon.eblog.service.CommentService;
 import codedragon.eblog.service.PostService;
+import codedragon.eblog.service.UserMessageService;
 import codedragon.eblog.service.UserService;
 import codedragon.eblog.shiro.AccountProfile;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -24,6 +26,9 @@ public class BaseController {
     @Autowired
     UserService userService;
 
+    @Autowired
+    UserMessageService userMessageService;
+
     public Page getPage() {
         int pn = ServletRequestUtils.getIntParameter(req, "pn", 1);
         int size = ServletRequestUtils.getIntParameter(req, "size", 2);
@@ -31,12 +36,12 @@ public class BaseController {
     }
 
     //从Shiro中获取用户信息
-    protected AccountProfile getProfile(){
+    protected AccountProfile getProfile() {
         return (AccountProfile) SecurityUtils.getSubject().getPrincipal();
     }
 
     //获取用户ID
-    protected Long getProfileId(){
+    protected Long getProfileId() {
         return getProfile().getId();
     }
 }

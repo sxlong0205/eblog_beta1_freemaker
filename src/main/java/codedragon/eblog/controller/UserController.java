@@ -1,23 +1,25 @@
 package codedragon.eblog.controller;
 
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
 import codedragon.eblog.common.lang.Result;
 import codedragon.eblog.entity.Post;
 import codedragon.eblog.entity.User;
+import codedragon.eblog.entity.UserMessage;
 import codedragon.eblog.shiro.AccountProfile;
 import codedragon.eblog.util.UploadUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import org.apache.shiro.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author : Code Dragon
@@ -60,6 +62,9 @@ public class UserController extends BaseController {
 
             AccountProfile profile = getProfile();
             profile.setAvatar(temp.getAvatar());
+
+            SecurityUtils.getSubject().getSession().setAttribute("profile", profile);
+
             return Result.success().action("/user/set#avatar");
         }
 
@@ -86,6 +91,8 @@ public class UserController extends BaseController {
         profile.setUsername(temp.getUsername());
         profile.setSign(temp.getSign());
 
+        SecurityUtils.getSubject().getSession().setAttribute("profile", profile);
+
         return Result.success().action("/user/set#info");
     }
 
@@ -101,14 +108,14 @@ public class UserController extends BaseController {
     @ResponseBody
     @PostMapping("/user/repass")
     public Result repass(String nowpass, String pass, String repass) {
-        if(!pass.equals(repass)) {
+        if (!pass.equals(repass)) {
             return Result.fail("两次密码不相同");
         }
 
         User user = userService.getById(getProfileId());
 
         String nowPassMd5 = SecureUtil.md5(nowpass);
-        if(!nowPassMd5.equals(user.getPassword())) {
+        if (!nowPassMd5.equals(user.getPassword())) {
             return Result.fail("密码不正确");
         }
 
@@ -116,7 +123,65 @@ public class UserController extends BaseController {
         userService.updateById(user);
 
         return Result.success().action("/user/set#pass");
+    }
 
+    @GetMapping("/user/index")
+    public String index() {
+        return "/user/index";
+    }
+
+    //我的消息
+    @GetMapping("/user/message")
+    public String message() {
+        IPage page = userMessageService.paging(getPage(), new QueryWrapper<UserMessage>()
+                .eq("to_user_id", getProfileId())
+                .orderByAsc("created"));
+
+        req.setAttribute("pageData", page);
+        return "/user/message";
+    }
+
+    //我的发布
+    @ResponseBody
+    @GetMapping("/user/public")
+    public Result userP() {
+        IPage page = postService.page(getPage(), new QueryWrapper<Post>()
+                .eq("user_id", getProfileId())
+                .orderByDesc("created"));
+        return Result.success(page);
+    }
+
+    //我的收藏
+    @ResponseBody
+    @GetMapping("/user/collection")
+    public Result collection() {
+        IPage id = postService.page(getPage(), new QueryWrapper<Post>()
+                .inSql("id", "select post_id from user_collection where user_id = " + getProfileId())
+        );
+        return Result.success(id);
+    }
+
+    //删除评论
+    @ResponseBody
+    @PostMapping("/message/remove")
+    public Result msgRemove(Long id, @RequestParam(defaultValue = "false") Boolean all) {
+        boolean remove = userMessageService.remove(new QueryWrapper<UserMessage>()
+                .eq("to_user_id", getProfileId())
+                .eq(!all, "id", id)
+        );
+
+        return remove ? Result.success(null) : Result.fail("删除失败");
+    }
+
+    @ResponseBody
+    @RequestMapping("/message/nums/")
+    public Map msgNums() {
+        int count = userMessageService.count(new QueryWrapper<UserMessage>()
+                .eq("to_user_id", getProfileId())
+                .eq("status", "0")
+        );
+
+        return MapUtil.builder("status", 0).put("count", count).build();
     }
 }
 

@@ -299,6 +299,8 @@ public class RedisConfig {
 }
 ```
 
+
+
 ### Day3
 
 - 增加登陆注册功能
@@ -1524,9 +1526,321 @@ public Result doSet(User user) {
        }
    ```
 
-   
+### Day4
+
+- 完成用户信息页面
+
+1. 在 common.ftl 中定义公共左侧边栏
+
+```html
+<#macro centerLeft level>
+    <ul class="layui-nav layui-nav-tree layui-inline" lay-filter="uesr">
+        <li class="layui-nav-item <#if level == 0>layui-this</#if>">
+            <a href="/post/home">
+                <i class="layui-icon">&#xe609;</i>
+                我的主页
+            </a>
+        </li>
+        <li class="layui-nav-item <#if level == 1>layui-this</#if>">
+            <a href="/user/index">
+                <i class="layui-icon">&#xe612;</i>
+                用户中心
+            </a>
+        </li>
+        <li class="layui-nav-item <#if level == 2>layui-this</#if>">
+            <a href="/user/set">
+                <i class="layui-icon">&#xe620;</i>
+                基本设置
+            </a>
+        </li>
+        <li class="layui-nav-item <#if level == 3>layui-this</#if>">
+            <a href="/user/message">
+                <i class="layui-icon">&#xe611;</i>
+                我的消息
+            </a>
+        </li>
+    </ul>
+</#macro>
+```
+
+2. 在 set.ftl 标签中引用
+
+```html
+<@centerLeft level=2></@centerLeft>
+```
+
+- 实现发表文章懒加载功能
+
+1. index.ftl
+
+```html
+<#include "/inc/layout.ftl"/>
+
+<@layout "用户中心">
+    <div class="layui-container fly-marginTop fly-user-main">
+        <@centerLeft level=1></@centerLeft>
+
+        <div class="site-tree-mobile layui-hide">
+            <i class="layui-icon">&#xe602;</i>
+        </div>
+        <div class="site-mobile-shade"></div>
+
+        <div class="site-tree-mobile layui-hide">
+            <i class="layui-icon">&#xe602;</i>
+        </div>
+        <div class="site-mobile-shade"></div>
 
 
+        <div class="fly-panel fly-panel-user" pad20>
+            <div class="layui-tab layui-tab-brief" lay-filter="user">
+                <ul class="layui-tab-title" id="LAY_mine">
+                    <li data-type="mine-jie" lay-id="index" class="layui-this">我发的帖（<span>89</span>）</li>
+                    <li data-type="collection" data-url="/collection/find/" lay-id="collection">我收藏的帖（<span>16</span>）
+                    </li>
+                </ul>
+                <div class="layui-tab-content" style="padding: 20px 0;">
+                    <div class="layui-tab-item layui-show">
+                        <ul class="mine-view jie-row" id="fabu">
+                            <script id="tpl-fabu" type="text/html">
+                                <li>
+                                    <a class="jie-title" href="/post/{{d.id}}" target="_blank">{{ d.title }}</a>
+                                    <i>{{layui.util.toDateString(d.created, 'yyyy-MM-dd HH:mm:ss')}}</i>
+                                    <a class="mine-edit" href="/post/edit?id={{d.id}}">编辑</a>
+                                    <em>{{d.viewCount}}阅/{{d.commentCount}}答</em>
+                                </li>
+                            </script>
+
+                        </ul>
+                        <div id="LAY_page"></div>
+                    </div>
+                    <div class="layui-tab-item">
+                        <ul class="mine-view jie-row" id="collection">
+                            <script id="tpl-collection" type="text/html">
+                                <li>
+                                    <a class="jie-title" href="/post/{{d.id}}" target="_blank">{{d.title}}</a>
+                                    <i>收藏于{{layui.util.timeAgo(d.created, true)}}</i>
+                                </li>
+                            </script>
+                        </ul>
+                        <div id="LAY_page1"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        layui.cache.page = 'user';
+        layui.use(['laytpl', 'flow', 'util'], function () {
+            var $ = layui.jquery;
+            var laytpl = layui.laytpl;
+            var flow = layui.flow;
+            var util = layui.util;
+            flow.load({
+                elem: '#fabu' //指定列表容器
+                , isAuto: false
+                , done: function (page, next) { //到达临界点（默认滚动触发），触发下一页
+                    var lis = [];
+
+                    //以jQuery的Ajax请求为例，请求下一页数据（注意：page是从2开始返回）
+                    $.get('/user/public?pn=' + page, function (res) {
+                        //假设你的列表返回在data集合中
+                        layui.each(res.data.records, function (index, item) {
+                            var tpl = $("#tpl-fabu").html();
+                            laytpl(tpl).render(item, function (html) {
+                                $("#fabu .layui-flow-more").before(html);
+                            });
+                        });
+
+                        //执行下一页渲染，第二参数为：满足“加载更多”的条件，即后面仍有分页
+                        //pages为Ajax返回的总页数，只有当前页小于总页数的情况下，才会继续出现更多加载
+                        next(lis.join(''), page < res.data.pages);
+                    });
+                }
+            });
+
+            flow.load({
+                elem: '#collection'
+                , isAuto: false
+                , done: function (page, next) {
+                    var lis = [];
+                    $.get('/user/collection?pn=' + page, function (res) {
+                        layui.each(res.data.records, function (index, item) {
+                            var tpl = $("#tpl-collection").html();
+                            laytpl(tpl).render(item, function (html) {
+                                $("#collection .layui-flow-more").before(html);
+                            });
+                        });
+                        next(lis.join(''), page < res.data.pages);
+                    });
+                }
+            });
+        });
+    </script>
+</@layout>
+```
+
+2. 在 UserController 中编写相应的方法
+
+```java
+@ResponseBody
+@GetMapping("/user/public")
+public Result userP() {
+    IPage page = postService.page(getPage(), new QueryWrapper<Post>()
+            .eq("user_id", getProfileId())
+            .orderByDesc("created"));
+    return Result.success(page);
+}
+
+@ResponseBody
+@GetMapping("/user/collection")
+public Result collection() {
+    IPage id = postService.page(getPage(), new QueryWrapper<Post>()
+            .inSql("id", "select post_id from user_collection where user_id = " + getProfileId())
+    );
+    return Result.success(id);
+}
+```
+
+- 完成我的消息页面
+
+1. 完成  UserMessage、UserMessageService、UserMessageServiceImpl、UserMessageMapper、UserMessageMapper.xml、UserMessageVo
+
+UserMessage
+
+```java
+@Data
+@EqualsAndHashCode(callSuper = true)
+@Accessors(chain = true)
+public class UserMessage extends BaseEntity {
+
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * 发送消息的用户ID
+     */
+    private Long fromUserId;
+
+    /**
+     * 接收消息的用户ID
+     */
+    private Long toUserId;
+
+    /**
+     * 消息可能关联的帖子
+     */
+    private Long postId;
+
+    /**
+     * 消息可能关联的评论
+     */
+    private Long commentId;
+
+    private String content;
+
+    /**
+     * 消息类型
+     */
+    private Integer type;
+
+    /**
+     * @author: Code Dragon
+     * @description: 判断消息已读还是未读
+     * @date: 2020/7/9 18:04
+     * @param null
+     * @return
+     */
+    private Integer status;
+}
+```
+
+UserMessageService
+
+```java
+public interface UserMessageService extends IService<UserMessage> {
+
+    IPage paging(Page page, QueryWrapper<UserMessage> wrapper);
+}
+```
+
+UserMessageServiceImpl
+
+```java
+@Service
+public class UserMessageServiceImpl extends ServiceImpl<UserMessageMapper, UserMessage> implements UserMessageService {
+
+    @Autowired
+    UserMessageMapper userMessageMapper;
+
+    @Override
+    public IPage paging(Page page, QueryWrapper<UserMessage> wrapper) {
+        return userMessageMapper.selectMessages(page, wrapper);
+    }
+}
+```
+
+UserMessageMapper
+
+```java
+@Component
+public interface UserMessageMapper extends BaseMapper<UserMessage> {
+    IPage<UserMessageVo> selectMessages(Page page, QueryWrapper<UserMessage> wrapper);
+}
+```
+
+UserMessageMapper.xml
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="codedragon.eblog.mapper.UserMessageMapper">
+    <select id="selectMessages" resultType="codedragon.eblog.VO.UserMessageVo">
+		SELECT
+			m.*,
+			( SELECT username FROM `user` WHERE id = m.from_user_id ) AS fromUserName,
+			( SELECT title FROM post WHERE id = m.post_id ) AS postTitle
+		FROM
+			`user_message` m
+
+		${ew.customSqlSegment}
+
+	</select>
+</mapper>
+```
+
+UserMessageVo
+
+```java
+@Data
+public class UserMessageVo extends UserMessage {
+    private String toUserName;
+    private String fromUserName;
+    private String postTitle;
+    private String commentContent;
+}
+```
+
+2. 在 ShiroConfig 中加入过滤器
+
+```java
+hashMap.put("/user/message", "authc");
+```
+
+3. 在 UserController 中编写删除评论功能
+
+```java
+//删除评论
+@ResponseBody
+@PostMapping("/message/remove")
+public Result msgRemove(Long id,@RequestParam(defaultValue = "false") Boolean all) {
+    boolean remove = userMessageService.remove(new QueryWrapper<UserMessage>()
+            .eq("to_user_id", getProfileId())
+            .eq(!all, "id", id)
+    );
+
+    return remove ? Result.success(null) : Result.fail("删除失败");
+}
+```
 
 #### 使用说明 
 

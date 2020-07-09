@@ -43,9 +43,16 @@ public class UserMessage extends BaseEntity {
     private String content;
 
     /**
-     * 消息类型
+     * 消息类型 0系统消息 1评论文章 2评论
      */
     private Integer type;
 
-
+    /**
+     * @author: Code Dragon
+     * @description: 判断消息已读还是未读
+     * @date: 2020/7/9 18:04
+     * @param null
+     * @return
+     */
+    private Integer status;
 }
