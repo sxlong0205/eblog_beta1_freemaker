@@ -11,17 +11,13 @@ public class IndexController extends BaseController {
 
     @RequestMapping({"", "/", "index"})
     public String index() {
-        /**
-         * 1. 分页信息
-         * 2. 分类信息
-         * 3. 用户信息
-         * 4. 置顶
-         * 5. 精选
-         * 6. 排序
-         */
+
+        // 1分页信息 2分类 3用户 4置顶  5精选 6排序
         IPage results = postService.paging(getPage(), null, null, null, null, "created");
+
         req.setAttribute("pageData", results);
         req.setAttribute("currentCategoryId", 0);
         return "index";
     }
+
 }

@@ -3,6 +3,7 @@ package codedragon.eblog.controller;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
+import codedragon.eblog.VO.UserMessageVo;
 import codedragon.eblog.common.lang.Result;
 import codedragon.eblog.entity.Post;
 import codedragon.eblog.entity.User;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -133,9 +135,19 @@ public class UserController extends BaseController {
     //我的消息
     @GetMapping("/user/message")
     public String message() {
-        IPage page = userMessageService.paging(getPage(), new QueryWrapper<UserMessage>()
+        IPage<UserMessageVo> page = userMessageService.paging(getPage(), new QueryWrapper<UserMessage>()
                 .eq("to_user_id", getProfileId())
-                .orderByAsc("created"));
+                .orderByDesc("created"));
+
+        //把消息改成已读状态
+        List<Long> ids = new ArrayList<>();
+        for (UserMessageVo messageVo : page.getRecords()) {
+            if (messageVo.getStatus() == 0) {
+                ids.add(messageVo.getId());
+            }
+        }
+        //批量改成已读
+        userMessageService.updateToReaded(ids);
 
         req.setAttribute("pageData", page);
         return "/user/message";

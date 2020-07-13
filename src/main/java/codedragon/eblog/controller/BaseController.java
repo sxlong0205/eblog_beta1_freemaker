@@ -1,10 +1,6 @@
 package codedragon.eblog.controller;
 
-import codedragon.eblog.entity.UserMessage;
-import codedragon.eblog.service.CommentService;
-import codedragon.eblog.service.PostService;
-import codedragon.eblog.service.UserMessageService;
-import codedragon.eblog.service.UserService;
+import codedragon.eblog.service.*;
 import codedragon.eblog.shiro.AccountProfile;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.apache.shiro.SecurityUtils;
@@ -16,18 +12,20 @@ import javax.servlet.http.HttpServletRequest;
 public class BaseController {
     @Autowired
     HttpServletRequest req;
-
     @Autowired
     PostService postService;
-
     @Autowired
     CommentService commentService;
-
     @Autowired
     UserService userService;
-
     @Autowired
     UserMessageService userMessageService;
+    @Autowired
+    UserCollectionService userCollectionService;
+    @Autowired
+    CategoryService categoryService;
+    @Autowired
+    WsService wsService;
 
     public Page getPage() {
         int pn = ServletRequestUtils.getIntParameter(req, "pn", 1);

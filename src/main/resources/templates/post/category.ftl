@@ -1,6 +1,9 @@
-<#include "/inc/layout.ftl"/>
+<#include "/inc/layout.ftl" />
+
 <@layout "博客分类">
-    <#include "/inc/header-panel.ftl"/>
+
+    <#include "/inc/header-panel.ftl" />
+
     <div class="layui-container">
         <div class="layui-row layui-col-space15">
             <div class="layui-col-md8">
@@ -18,18 +21,31 @@
             <a href="" class="layui-this">按最新</a>
             <span class="fly-mid"></span>
             <a href="">按热议</a>
-          </span></div>
-                    <@posts categoryId = currentCategoryId pn=pn size=2>
+          </span>
+                    </div>
+
+                    <@posts categoryId=currentCategoryId pn=pn size=2>
+
                         <ul class="fly-list">
                             <#list results.records as post>
                                 <@plisting post></@plisting>
                             </#list>
                         </ul>
+
                         <@paging results></@paging>
+
                     </@posts>
+
+
                 </div>
             </div>
-            <#include "/inc/right.ftl"/>
+
+            <#include "/inc/right.ftl" />
+
         </div>
     </div>
+    <script>
+        layui.cache.page = 'jie';
+    </script>
+
 </@layout>

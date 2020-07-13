@@ -2,6 +2,7 @@ package codedragon.eblog.config;
 
 import cn.hutool.core.map.MapUtil;
 import codedragon.eblog.shiro.AccountRealm;
+import codedragon.eblog.shiro.AuthFilter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.spring.web.ShiroFilterFactoryBean;
@@ -39,15 +40,40 @@ public class ShiroConfig {
         // 配置未授权跳转页面
         filterFactoryBean.setUnauthorizedUrl("/error/403");
 
+        filterFactoryBean.setFilters(MapUtil.of("auth", authFilter()));
+
         Map<String, String> hashMap = new LinkedHashMap<>();
-        hashMap.put("/user/home", "authc");
-        hashMap.put("/user/upload", "authc");
-        hashMap.put("/user/message", "authc");
-        hashMap.put("/user/set", "authc");
+        hashMap.put("/user/home", "auth");
+        hashMap.put("/user/upload", "auth");
+        hashMap.put("/user/message", "auth");
+        hashMap.put("/user/set", "auth");
+        hashMap.put("/user/index", "auth");
+        hashMap.put("/user/public", "auth");
+        hashMap.put("/user/collection", "auth");
+
+        hashMap.put("/message/remove", "auth");
+        hashMap.put("/message/nums/", "auth");
+
+        hashMap.put("/collection/remove", "auth");
+        hashMap.put("/collection/add", "auth");
+        hashMap.put("/collection/find", "auth");
+
+        hashMap.put("/post/edit", "auth");
+        hashMap.put("/post/submit", "auth");
+        hashMap.put("/post/delete", "auth");
+        hashMap.put("/post/reply/", "auth");
+
         hashMap.put("/login", "anon");
+        hashMap.put("/websocket", "anon");
+        hashMap.put("/res/**", "anon");
         filterFactoryBean.setFilterChainDefinitionMap(hashMap);
 
         return filterFactoryBean;
+    }
+
+    @Bean
+    public AuthFilter authFilter() {
+        return new AuthFilter();
     }
 }
 

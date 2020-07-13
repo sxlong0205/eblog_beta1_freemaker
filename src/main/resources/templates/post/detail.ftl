@@ -1,6 +1,9 @@
-<#include "/inc/layout.ftl"/>
-<@layout "博客分类">
-    <#include "/inc/header-panel.ftl"/>
+<#include "/inc/layout.ftl" />
+
+<@layout "博客详情">
+
+    <#include "/inc/header-panel.ftl" />
+
     <div class="layui-container">
         <div class="layui-row layui-col-space15">
             <div class="layui-col-md8 content detail">
@@ -13,14 +16,30 @@
                         <#if post.level gt 0><span class="layui-badge layui-bg-black">置顶</span></#if>
                         <#if post.recommend><span class="layui-badge layui-bg-red">精帖</span></#if>
 
-                        <div class="fly-admin-box" data-id="123">
-                            <span class="layui-btn layui-btn-xs jie-admin" type="del">删除</span>
+                        <div class="fly-admin-box" data-id="${post.id}">
 
-                            <span class="layui-btn layui-btn-xs jie-admin" type="set" field="stick" rank="1">置顶</span>
-                            <!-- <span class="layui-btn layui-btn-xs jie-admin" type="set" field="stick" rank="0" style="background-color:#ccc;">取消置顶</span> -->
+                            <#if post.userId == profile.id>
+                            <#--发布者删除-->
+                                <span class="layui-btn layui-btn-xs jie-admin" type="del">删除</span>
+                            </#if>
 
-                            <span class="layui-btn layui-btn-xs jie-admin" type="set" field="status" rank="1">加精</span>
-                            <!-- <span class="layui-btn layui-btn-xs jie-admin" type="set" field="status" rank="0" style="background-color:#ccc;">取消加精</span> -->
+                            <@shiro.hasRole name="admin">
+                            <#--管理员操作-->
+                                <span class="layui-btn layui-btn-xs jie-admin" type="set" field="delete"
+                                      rank="1">删除</span>
+
+                                <#if post.level == 0><span class="layui-btn layui-btn-xs jie-admin" type="set"
+                                                           field="stick" rank="1">置顶</span></#if>
+                                <#if post.level gt 0><span class="layui-btn layui-btn-xs jie-admin" type="set"
+                                                           field="stick" rank="0"
+                                                           style="background-color:#ccc;">取消置顶</span></#if>
+
+                                <#if !post.recommend><span class="layui-btn layui-btn-xs jie-admin" type="set"
+                                                           field="status" rank="1">加精</span></#if>
+                                <#if post.recommend><span class="layui-btn layui-btn-xs jie-admin" type="set"
+                                                          field="status" rank="0"
+                                                          style="background-color:#ccc;">取消加精</span></#if>
+                            </@shiro.hasRole>
                         </div>
                         <span class="fly-list-nums">
             <a href="#comment"><i class="iconfont" title="回答">&#xe60c;</i> ${post.commentCount}</a>
@@ -29,79 +48,69 @@
                     </div>
                     <div class="detail-about">
                         <a class="fly-avatar" href="/user/${post.authorId}">
-                            <img src="${post.authorAvatar}"
-                                 alt="${post.authorName}">
+                            <img src="${post.authorAvatar}" alt="${post.authorName}">
                         </a>
                         <div class="fly-detail-user">
                             <a href="/user/${post.authorId}" class="fly-link">
-                                <cite>${post.authorName}</cite>
+                            <cite>${post.authorName}</cite>
                             </a>
                             <span>${timeAgo(post.created)}</span>
                         </div>
                         <div class="detail-hits" id="LAY_jieAdmin" data-id="${post.id}">
-                            <span class="layui-btn layui-btn-xs jie-admin" type="edit"><a
-                                        href="../html/jie/add.html">编辑此贴</a></span>
+                            <#if profile.id == post.userId><span class="layui-btn layui-btn-xs jie-admin" type="edit"><a
+                                        href="/post/edit?id=${post.id}">编辑此贴</a></span></#if>
                         </div>
                     </div>
                     <div class="detail-body photos">
                         ${post.content}
                     </div>
                 </div>
-
                 <div class="fly-panel detail-box" id="flyReply">
                     <fieldset class="layui-elem-field layui-field-title" style="text-align: center;">
                         <legend>回帖</legend>
                     </fieldset>
-
                     <ul class="jieda" id="jieda">
                         <#list pageData.records as comment>
                             <li data-id="${comment.id}" class="jieda-daan">
                                 <a name="item-${comment.id}"></a>
                                 <div class="detail-about detail-about-reply">
                                     <a class="fly-avatar" href="/user/${post.authorId}">
-                                        <img src="${post.authorAvatar}"
-                                             alt="${post.authorName}">
+                                        <img src="${comment.authorAvatar}" alt="${comment.authorName}">
                                     </a>
                                     <div class="fly-detail-user">
-                                        <a href="/user/${post.authorId}" class="fly-link">
-                                            <cite>${post.authorName}</cite>
+                                        <a href="/user/${comment.authorId}" class="fly-link">
+                                            <cite>${comment.authorName}</cite>
                                         </a>
-
                                         <#if comment.user_id == post.user_id>
                                             <span>(楼主)</span>
                                         </#if>
                                     </div>
-
                                     <div class="detail-hits">
                                         <span>${timeAgo(comment.created)}</span>
                                     </div>
                                 </div>
                                 <div class="detail-body jieda-body photos">
-                                    <p>${comment.content}</p>
+                                    ${comment.content}
                                 </div>
                                 <div class="jieda-reply">
-                                    <span class="jieda-zan zanok" type="zan">
-                                      <i class="iconfont icon-zan"></i>
-                                      <em>${comment.voteUp}</em>
-                                    </span>
+                          <span class="jieda-zan zanok" type="zan">
+                            <i class="iconfont icon-zan"></i>
+                            <em>${comment.voteUp}</em>
+                          </span>
                                     <span type="reply">
-                                      <i class="iconfont icon-svgmoban53"></i>
-                                      回复
-                                    </span>
+                            <i class="iconfont icon-svgmoban53"></i>
+                            回复
+                          </span>
                                     <div class="jieda-admin">
-                                        <span type="edit">编辑</span>
                                         <span type="del">删除</span>
-                                        <!-- <span class="jieda-accept" type="accept">采纳</span> -->
                                     </div>
                                 </div>
                             </li>
                         </#list>
                     </ul>
-
                     <@paging pageData></@paging>
-
                     <div class="layui-form layui-form-pane">
-                        <form action="html/jie/reply/" method="post">
+                        <form action="/post/reply/" method="post">
                             <div class="layui-form-item layui-form-text">
                                 <a name="comment"></a>
                                 <div class="layui-input-block">
@@ -118,11 +127,19 @@
                     </div>
                 </div>
             </div>
-            <#include "/inc/right.ftl"/>
+            <#include "/inc/right.ftl" />
         </div>
     </div>
+    <script>
+        layui.cache.page = 'jie';
+        $(function () {
+            layui.use(['fly', 'face'], function () {
+                var fly = layui.fly;
+                $('.detail-body').each(function () {
+                    var othis = $(this), html = othis.html();
+                    othis.html(fly.content(html));
+                });
+            });
+        });
+    </script>
 </@layout>
-
-
-
-

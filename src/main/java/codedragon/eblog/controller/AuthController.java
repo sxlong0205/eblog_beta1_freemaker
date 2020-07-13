@@ -35,7 +35,8 @@ public class AuthController extends BaseController {
 
     @GetMapping("/capthca.jpg")
     public void kaptcha(HttpServletResponse resp) throws IOException {
-        //验证码
+
+        // 验证码
         String text = producer.createText();
         BufferedImage image = producer.createImage(text);
         req.getSession().setAttribute(KAPTCHA_SESSION_KEY, text);
@@ -54,73 +55,64 @@ public class AuthController extends BaseController {
     @ResponseBody
     @PostMapping("/login")
     public Result doLogin(String email, String password) {
-        //校验用户名密码不为空
-        if (StrUtil.isEmpty(email) || StrUtil.isBlank(password))
+        if(StrUtil.isEmpty(email) || StrUtil.isBlank(password)) {
             return Result.fail("邮箱或密码不能为空");
+        }
 
         UsernamePasswordToken token = new UsernamePasswordToken(email, SecureUtil.md5(password));
-
         try {
             SecurityUtils.getSubject().login(token);
+
         } catch (AuthenticationException e) {
-            if (e instanceof UnknownAccountException)
+            if (e instanceof UnknownAccountException) {
                 return Result.fail("用户不存在");
-            else if (e instanceof LockedAccountException)
+            } else if (e instanceof LockedAccountException) {
                 return Result.fail("用户被禁用");
-            else if (e instanceof IncorrectCredentialsException)
+            } else if (e instanceof IncorrectCredentialsException) {
                 return Result.fail("密码错误");
-            else
+            } else {
                 return Result.fail("用户认证失败");
+            }
         }
 
         return Result.success().action("/");
     }
 
-    @ResponseBody
-    @PostMapping("/register")
-    public Result doRegister(User user, String repass, String vercode) {
 
-        //校验用户输入是否合法
-        ValidationUtil.ValidResult validResult = ValidationUtil.validateBean(user);
-        if (validResult.hasErrors())
-            return Result.fail(validResult.getErrors());
-
-        //校验密码
-        if (!user.getPassword().equals(repass))
-            return Result.fail("两次输入密码不相同");
-
-        //获取并校验验证码
-        String capthca = (String) req.getSession().getAttribute(KAPTCHA_SESSION_KEY);
-        System.out.println(capthca);
-        if (vercode == null || !vercode.equalsIgnoreCase(capthca))
-            return Result.fail("验证码输入不正确");
-
-
-        //注册功能
-        Result result = userService.register(user);
-        return result.action("/login");
-    }
 
     @GetMapping("/register")
     public String register() {
         return "/auth/reg";
     }
 
-    //退出功能
+    @ResponseBody
+    @PostMapping("/register")
+    public Result doRegister(User user, String repass, String vercode) {
+
+        ValidationUtil.ValidResult validResult = ValidationUtil.validateBean(user);
+        if(validResult.hasErrors()) {
+            return Result.fail(validResult.getErrors());
+        }
+
+        if(!user.getPassword().equals(repass)) {
+            return Result.fail("两次输入密码不相同");
+        }
+
+        String capthca = (String) req.getSession().getAttribute(KAPTCHA_SESSION_KEY);
+        System.out.println(capthca);
+        if(vercode == null || !vercode.equalsIgnoreCase(capthca)) {
+            return Result.fail("验证码输入不正确");
+        }
+
+        // 完成注册
+        Result result = userService.register(user);
+        return result.action("/login");
+    }
+
     @RequestMapping("/user/logout")
     public String logout() {
         SecurityUtils.getSubject().logout();
         return "redirect:/";
     }
+
 }
-
-
-
-
-
-
-
-
-
-
-

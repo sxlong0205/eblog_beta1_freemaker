@@ -1,6 +1,5 @@
 package codedragon.eblog.entity;
 
-import codedragon.eblog.entity.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;

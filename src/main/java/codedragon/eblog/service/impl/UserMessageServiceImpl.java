@@ -10,6 +10,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * <p>
  * 服务实现类
@@ -27,5 +29,12 @@ public class UserMessageServiceImpl extends ServiceImpl<UserMessageMapper, UserM
     @Override
     public IPage paging(Page page, QueryWrapper<UserMessage> wrapper) {
         return userMessageMapper.selectMessages(page, wrapper);
+    }
+
+    @Override
+    public void updateToReaded(List<Long> ids) {
+        userMessageMapper.updateToReaded(new QueryWrapper<UserMessage>()
+                .in("id", ids)
+        );
     }
 }

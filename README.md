@@ -1842,6 +1842,685 @@ public Result msgRemove(Long id,@RequestParam(defaultValue = "false") Boolean al
 }
 ```
 
+### Day5
+
+- 添加编辑页面
+
+1. 引入 edit.ftl 页面 
+
+```html
+<#include "/inc/layout.ftl" />
+
+<@layout "添加或编辑博客">
+
+<div class="layui-container fly-marginTop">
+  <div class="fly-panel" pad20 style="padding-top: 5px;">
+    <!--<div class="fly-none">没有权限</div>-->
+    <div class="layui-form layui-form-pane">
+      <div class="layui-tab layui-tab-brief" lay-filter="user">
+        <ul class="layui-tab-title">
+          <li class="layui-this">发表新帖<!-- 编辑帖子 --></li>
+        </ul>
+        <div class="layui-form layui-tab-content" id="LAY_ucm" style="padding: 20px 0;">
+          <div class="layui-tab-item layui-show">
+            <form action="" method="post">
+              <div class="layui-row layui-col-space15 layui-form-item">
+                <div class="layui-col-md3">
+                  <label class="layui-form-label">所在专栏</label>
+                  <div class="layui-input-block">
+                    <select lay-verify="required" name="class" lay-filter="column"> 
+                      <option></option> 
+                      <option value="0">提问</option> 
+                      <option value="99">分享</option> 
+                      <option value="100">讨论</option> 
+                      <option value="101">建议</option> 
+                      <option value="168">公告</option> 
+                      <option value="169">动态</option> 
+                    </select>
+                  </div>
+                </div>
+                <div class="layui-col-md9">
+                  <label for="L_title" class="layui-form-label">标题</label>
+                  <div class="layui-input-block">
+                    <input type="text" id="L_title" name="title" required lay-verify="required" autocomplete="off" class="layui-input">
+                    <!-- <input type="hidden" name="id" value="{{d.edit.id}}"> -->
+                  </div>
+                </div>
+              </div>
+              <div class="layui-row layui-col-space15 layui-form-item layui-hide" id="LAY_quiz">
+                <div class="layui-col-md3">
+                  <label class="layui-form-label">所属产品</label>
+                  <div class="layui-input-block">
+                    <select name="project">
+                      <option></option>
+                      <option value="layui">layui</option>
+                      <option value="独立版layer">独立版layer</option>
+                      <option value="独立版layDate">独立版layDate</option>
+                      <option value="LayIM">LayIM</option>
+                      <option value="Fly社区模板">Fly社区模板</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="layui-col-md3">
+                  <label class="layui-form-label" for="L_version">版本号</label>
+                  <div class="layui-input-block">
+                    <input type="text" id="L_version" value="" name="version" autocomplete="off" class="layui-input">
+                  </div>
+                </div>
+                <div class="layui-col-md6">
+                  <label class="layui-form-label" for="L_browser">浏览器</label>
+                  <div class="layui-input-block">
+                    <input type="text" id="L_browser"  value="" name="browser" placeholder="浏览器名称及版本，如：IE 11" autocomplete="off" class="layui-input">
+                  </div>
+                </div>
+              </div>
+              <div class="layui-form-item layui-form-text">
+                <div class="layui-input-block">
+                  <textarea id="L_content" name="content" required lay-verify="required" placeholder="详细描述" class="layui-textarea fly-editor" style="height: 260px;"></textarea>
+                </div>
+              </div>
+              <div class="layui-form-item">
+                <div class="layui-inline">
+                  <label class="layui-form-label">悬赏飞吻</label>
+                  <div class="layui-input-inline" style="width: 190px;">
+                    <select name="experience">
+                      <option value="20">20</option>
+                      <option value="30">30</option>
+                      <option value="50">50</option>
+                      <option value="60">60</option>
+                      <option value="80">80</option>
+                    </select>
+                  </div>
+                  <div class="layui-form-mid layui-word-aux">发表后无法更改飞吻</div>
+                </div>
+              </div>
+              <div class="layui-form-item">
+                <label for="L_vercode" class="layui-form-label">人类验证</label>
+                <div class="layui-input-inline">
+                  <input type="text" id="L_vercode" name="vercode" required lay-verify="required" placeholder="请回答后面的问题" autocomplete="off" class="layui-input">
+                </div>
+                <div class="layui-form-mid">
+                  <span style="color: #c00;">1+1=?</span>
+                </div>
+              </div>
+              <div class="layui-form-item">
+                <button class="layui-btn" lay-filter="*" lay-submit>立即发布</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+layui.cache.page = 'jie';
+</script>
+</@layout>
+```
+
+2. 在 PostController 中添加添加对应方法
+
+```java 
+//编辑页面
+@GetMapping("/post/edit")
+public String edit() {
+    return "/post/edit";
+}
+```
+
+3. 在 ShiroConfig 中添加过滤器
+
+```java
+@Slf4j
+@Configuration
+public class ShiroConfig {
+    //配置安全中心
+    @Bean
+    public SecurityManager securityManager(AccountRealm accountRealm) {
+        DefaultWebSecurityManager securityManager = new DefaultWebSecurityManager();
+        securityManager.setRealm(accountRealm);
+        log.info("---------------->securityManager注入成功");
+        return securityManager;
+    }
+
+    //配置拦截器
+    @Bean
+    public ShiroFilterFactoryBean shiroFilterFactoryBean(SecurityManager securityManager) {
+        ShiroFilterFactoryBean filterFactoryBean = new ShiroFilterFactoryBean();
+        filterFactoryBean.setSecurityManager(securityManager);
+        // 配置登录的url和登录成功的url
+        filterFactoryBean.setLoginUrl("/login");
+        filterFactoryBean.setSuccessUrl("/user/center");
+        // 配置未授权跳转页面
+        filterFactoryBean.setUnauthorizedUrl("/error/403");
+
+        filterFactoryBean.setFilters(MapUtil.of("auth", authFilter()));
+
+        Map<String, String> hashMap = new LinkedHashMap<>();
+        hashMap.put("/user/home", "auth");
+        hashMap.put("/user/upload", "auth");
+        hashMap.put("/user/message", "auth");
+        hashMap.put("/collection/remove", "auth");
+        hashMap.put("/collection/add", "auth");
+        hashMap.put("/collection/find", "auth");
+        hashMap.put("/user/set", "auth");
+        hashMap.put("/**", "anon");
+        filterFactoryBean.setFilterChainDefinitionMap(hashMap);
+
+        return filterFactoryBean;
+    }
+
+    @Bean
+    public AuthFilter authFilter() {
+        return new AuthFilter();
+    }
+}
+```
+
+4. 修改 Post类
+
+```java 
+@Data
+@EqualsAndHashCode(callSuper = true)
+@Accessors(chain = true)
+public class Post extends BaseEntity {
+
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * 标题
+     */
+    @NotBlank(message = "标题不能为空")
+    private String title;
+
+    /**
+     * 内容
+     */
+    @NotBlank(message = "内容不能为空")
+    private String content;
+
+    /**
+     * 编辑模式：html可视化，markdown ..
+     */
+    private String editMode;
+
+    @NotNull(message = "分类不能为空")
+    private Long categoryId;
+
+    /**
+     * 用户ID
+     */
+    private Long userId;
+
+    /**
+     * 支持人数
+     */
+    private Integer voteUp;
+
+    /**
+     * 反对人数
+     */
+    private Integer voteDown;
+
+    /**
+     * 访问量
+     */
+    private Integer viewCount;
+
+    /**
+     * 评论数量
+     */
+    private Integer commentCount;
+
+    /**
+     * 是否为精华
+     */
+    private Boolean recommend;
+
+    /**
+     * 置顶等级
+     */
+    private Integer level;
+}
+```
+
+5. 在 PostController 里编写相应的方法
+
+```java 
+    //编辑页面
+    @GetMapping("/post/edit")
+    public String edit() {
+        String id = req.getParameter("id");
+        if (StringUtils.isEmpty(id)) {
+            Post post = postService.getById(id);
+            Assert.isTrue(post != null, "该帖子已被删除");
+            Assert.isTrue(post.getUserId().longValue() == getProfileId().longValue(), "没权限操作此文章");
+            req.setAttribute("post", post);
+        }
+        req.setAttribute("categories", categoryService.list());
+        return "/post/edit";
+    }
+
+    @PostMapping("/post/submit")
+    public Result submit(Post post) {
+        ValidationUtil.ValidResult validResult = ValidationUtil.validateBean(post);
+        if (validResult.hasErrors())
+            return Result.fail(validResult.getErrors());
+
+        if (post.getId() == null) {
+            post.setUserId(getProfileId());
+
+            post.setModified(new Date());
+            post.setCreated(new Date());
+            post.setCommentCount(0);
+            post.setEditMode(null);
+            post.setLevel(0);
+            post.setRecommend(false);
+            post.setViewCount(0);
+            post.setVoteDown(0);
+            post.setVoteUp(0);
+            postService.save(post);
+
+        } else {
+            Post tempPost = postService.getById(post.getId());
+            Assert.isTrue(tempPost.getUserId().longValue() == getProfileId().longValue(), "无权限编辑此文章！");
+
+            tempPost.setTitle(post.getTitle());
+            tempPost.setContent(post.getContent());
+            tempPost.setCategoryId(post.getCategoryId());
+            postService.updateById(tempPost);
+        }
+
+        return Result.success().action("/post" + post.getId());
+    }
+
+    @ResponseBody
+    @Transactional
+    @PostMapping("/post/reply/")
+    public Result reply(Long jid, String content) {
+        Assert.notNull(jid, "找不到对应的文章");
+        Assert.hasLength(content, "评论内容不能为空");
+
+        Post post = postService.getById(jid);
+        Assert.isTrue(post != null, "该文章已被删除");
+
+        Comment comment = new Comment();
+        comment.setPostId(jid);
+        comment.setContent(content);
+        comment.setUserId(getProfileId());
+        comment.setCreated(new Date());
+        comment.setModified(new Date());
+        comment.setLevel(0);
+        comment.setVoteDown(0);
+        comment.setVoteUp(0);
+        commentService.save(comment);
+
+        // 评论数量加一
+        post.setCommentCount(post.getCommentCount() + 1);
+        postService.updateById(post);
+
+        // 本周热议数量加一
+        postService.incrCommentCountAndUnionForWeekRank(post.getId(), true);
+
+        // 通知作者，有人评论了你的文章
+        // 作者自己评论自己文章，不需要通知
+        if (comment.getUserId() != post.getUserId()) {
+            UserMessage message = new UserMessage();
+            message.setPostId(jid);
+            message.setCommentId(comment.getId());
+            message.setFromUserId(getProfileId());
+            message.setToUserId(post.getUserId());
+            message.setType(1);
+            message.setContent(content);
+            message.setCreated(new Date());
+            message.setStatus(0);
+            userMessageService.save(message);
+
+            //即时通知作者(websocket)
+            wsService.sendMessCountToUser(message.getToUserId());
+        }
+
+        // 通知被@的人，有人回复了你的文章
+        if (content.startsWith("@")) {
+            String username = content.substring(1, content.indexOf(" "));
+            System.out.println(username);
+
+            User user = userService.getOne(new QueryWrapper<User>().eq("username", username));
+            if (user != null) {
+                UserMessage message = new UserMessage();
+                message.setPostId(jid);
+                message.setCommentId(comment.getId());
+                message.setFromUserId(getProfileId());
+                message.setToUserId(user.getId());
+                message.setType(2);
+                message.setContent(content);
+                message.setCreated(new Date());
+                message.setStatus(0);
+                userMessageService.save(message);
+
+                // 即时通知被@的用户
+            }
+        }
+        return Result.success().action("/post/" + post.getId());
+    }
+
+
+    //用户删除文章操作
+    @ResponseBody
+    @Transactional
+    @PostMapping("/post/delete")
+    public Result delete(Long id) {
+        Post post = postService.getById(id);
+
+        Assert.notNull(post, "该帖子已被删除");
+        Assert.isTrue(post.getUserId().longValue() == getProfileId().longValue(), "无权限删除此文章！");
+
+        postService.removeById(id);
+
+        // 删除相关消息、收藏等
+        userMessageService.removeByMap(MapUtil.of("post_id", id));
+        userCollectionService.removeByMap(MapUtil.of("post_id", id));
+
+        return Result.success().action("/user/index");
+    }
+```
+
+6. 在 AccountRealm 中增加超管权限
+
+```java
+@Component
+public class AccountRealm extends AuthorizingRealm {
+
+    @Autowired
+    UserService userService;
+
+    @Override
+    protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principalCollection) {
+        AccountProfile profile = (AccountProfile) principalCollection.getPrimaryPrincipal();
+
+        //给id=20的角色赋予admin角色
+        if (profile.getId() == 20){
+            SimpleAuthorizationInfo info = new SimpleAuthorizationInfo();
+            info.addRole("admin");
+            return info;
+        }
+        return null;
+    }
+
+    @Override
+    protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
+        UsernamePasswordToken usernamePasswordToken = (UsernamePasswordToken) token;
+        AccountProfile profile = userService.login(usernamePasswordToken.getUsername(), String.valueOf(usernamePasswordToken.getPassword()));
+
+        SecurityUtils.getSubject().getSession().setAttribute("profile", profile);
+
+        SimpleAuthenticationInfo info = new SimpleAuthenticationInfo(profile, token.getCredentials(), getName());
+        return info;
+    }
+}
+```
+
+7. 在 AdminController 中编写相应的方法
+
+```java
+@Controller
+@RequestMapping("/admin")
+public class AdminController extends BaseController {
+    /**
+     * @author: Code Dragon
+     * @description: TODO
+     * @date: 2020/7/10 22:55
+     * @param id
+     * @param rank 0表示取消，1表示操作
+     * @param field
+     * @return codedragon.eblog.common.lang.Result
+     */
+    @ResponseBody
+    @PostMapping("/jie-set")
+    public Result jetSet(Long id, Integer rank, String field) {
+
+        Post post = postService.getById(id);
+        Assert.notNull(post, "该帖子已被删除");
+
+        if("delete".equals(field)) {
+            postService.removeById(id);
+            return Result.success();
+
+        } else if("status".equals(field)) {
+            post.setRecommend(rank == 1);
+
+        }  else if("stick".equals(field)) {
+            post.setLevel(rank);
+        }
+        postService.updateById(post);
+        return Result.success();
+    }
+}
+```
+
+- 添加通用异常处理
+
+1. 编写 GlobalExceptionHandler 类
+
+```java
+@Slf4j
+@ControllerAdvice
+public class GlobalExceptionHandler {
+    @ExceptionHandler(value = Exception.class)
+    public ModelAndView handler(HttpServletRequest req, HttpServletResponse resp, Exception e) throws IOException {
+        String header = req.getHeader("X-Requested-With");
+
+        //Ajax 处理
+        if (header != null && "XMLHttpRequest".equals(header)) {
+            resp.setContentType("application/json;charset=UTF-8");
+            resp.getWriter().print(JSONUtil.toJsonStr(Result.fail(e.getMessage())));
+
+            return null;
+        }
+
+        //Web 处理
+        ModelAndView modelAndView = new ModelAndView("error");
+        modelAndView.addObject("message", e.getMessage());
+        return modelAndView;
+    }
+}
+```
+
+2. 添加 error.ftl 页面
+
+```html
+<#include "/inc/layout.ftl"/>
+<@layout "错误提示">
+
+    <div class="layui-container fly-marginTop">
+        <div class="fly-panel">
+            <div class="fly-none">
+                <h2><i class="iconfont icon-tishilian"></i></h2>
+                <p>${message}</p>
+            </div>
+        </div>
+    </div>
+
+</@layout>
+```
+
+- 引入 WebSocket 通信
+
+1. 引入 pom.xml 依赖
+
+```html
+<!--websocket-->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-websocket</artifactId>
+</dependency>
+```
+
+2. 添加 WsConfig 配置类
+
+```java
+@EnableAsync
+@Configuration
+@EnableWebSocketMessageBroker //摆事开启使用STOMP协议传输基于代理的消息
+public class WsConfig implements WebSocketMessageBrokerConfigurer {
+    @Override
+    public void registerStompEndpoints(StompEndpointRegistry registry) {
+        registry.addEndpoint("/websocket")  //注册一个端点，websocket的访问地址
+                .withSockJS(); //浏览器降级操作
+    }
+
+    @Override
+    public void configureMessageBroker(MessageBrokerRegistry registry) {
+        registry.enableSimpleBroker("/user/", "/topic/"); //推送消息前缀
+        registry.setApplicationDestinationPrefixes("/app");
+    }
+}
+```
+
+3. 引入 sockjs.js 和 stomp.js
+
+```javascript
+<script src="https://cdn.bootcdn.net/ajax/libs/sockjs-client/1.4.0/sockjs.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
+<!--建立websocket-->
+<script>
+    function showTips(count) {
+        var msg = $('<a class="fly-nav-msg" href="javascript:;">' + count + '</a>');
+        var elemUser = $('.fly-nav-user');
+        elemUser.append(msg);
+        msg.on('click', function () {
+            location.href = "/user/message";
+        });
+        layer.tips('你有 ' + count + ' 条未读消息', msg, {
+            tips: 3
+            , tipsMore: true
+            , fixed: true
+        });
+        msg.on('mouseenter', function () {
+            layer.closeAll('tips');
+        })
+    }
+
+    $(function () {
+        var elemUser = $('.fly-nav-user');
+        if (layui.cache.user.uid !== -1 && elemUser[0]) {
+            var socket = new SockJS("/websocket")
+            stompClient = Stomp.over(socket);
+            stompClient.connect({}, function (frame) {
+                stompClient.subscribe("/user/" + ${profile.id} +"/messCount", function (res) {
+                    console.log(res);
+                    // 弹窗
+                    showTips(res.body);
+                })
+            });
+        }
+    });
+</script>
+```
+
+4. 配置 ShiroConfig 类
+
+```java
+@Slf4j
+@Configuration
+public class ShiroConfig {
+    //配置安全中心
+    @Bean
+    public SecurityManager securityManager(AccountRealm accountRealm) {
+        DefaultWebSecurityManager securityManager = new DefaultWebSecurityManager();
+        securityManager.setRealm(accountRealm);
+        log.info("---------------->securityManager注入成功");
+        return securityManager;
+    }
+
+    //配置拦截器
+    @Bean
+    public ShiroFilterFactoryBean shiroFilterFactoryBean(SecurityManager securityManager) {
+        ShiroFilterFactoryBean filterFactoryBean = new ShiroFilterFactoryBean();
+        filterFactoryBean.setSecurityManager(securityManager);
+        // 配置登录的url和登录成功的url
+        filterFactoryBean.setLoginUrl("/login");
+        filterFactoryBean.setSuccessUrl("/user/center");
+        // 配置未授权跳转页面
+        filterFactoryBean.setUnauthorizedUrl("/error/403");
+
+        filterFactoryBean.setFilters(MapUtil.of("auth", authFilter()));
+
+        Map<String, String> hashMap = new LinkedHashMap<>();
+        hashMap.put("/user/home", "auth");
+        hashMap.put("/user/upload", "auth");
+        hashMap.put("/user/message", "auth");
+        hashMap.put("/user/set", "auth");
+        hashMap.put("/user/index", "auth");
+        hashMap.put("/user/public", "auth");
+        hashMap.put("/user/collection", "auth");
+        hashMap.put("/user/remove", "auth");
+
+        hashMap.put("/collection/remove", "auth");
+        hashMap.put("/collection/add", "auth");
+        hashMap.put("/collection/find", "auth");
+
+        hashMap.put("/message/nums/", "auth");
+
+        hashMap.put("/post/edit", "auth");
+        hashMap.put("/post/submit", "auth");
+        hashMap.put("/post/delete", "auth");
+        hashMap.put("/post/reply/", "auth");
+
+
+        hashMap.put("/login", "anon");
+        hashMap.put("/websocket", "anon");
+        hashMap.put("/res/**", "anon");
+        filterFactoryBean.setFilterChainDefinitionMap(hashMap);
+
+        return filterFactoryBean;
+    }
+
+    @Bean
+    public AuthFilter authFilter() {
+        return new AuthFilter();
+    }
+}
+```
+
+5. 创建 WsService 和 WsServiceImpl 类
+
+WsService 
+
+```java
+public interface WsService {
+    void sendMessCountToUser(Long toUserId);
+}
+```
+
+WsServiceImpl 
+
+```java
+@Service
+public class WsServiceImpl implements WsService {
+    @Autowired
+    UserMessageService userMessageService;
+    @Autowired
+    SimpMessagingTemplate simpMessagingTemplate;
+
+    @Async
+    @Override
+    public void sendMessCountToUser(Long toUserId) {
+        //未读消息
+        int count = userMessageService.count(new QueryWrapper<UserMessage>()
+                .eq("to_user_id", toUserId)
+                .eq("status", "0")
+        );
+
+        //websocket 通知
+        simpMessagingTemplate.convertAndSendToUser(toUserId.toString(), "/messCount", count);
+    }
+}
+```
+
 #### 使用说明 
 
 将该项目克隆到本地，修改application.yml文件中的数据库连接信息，创建eblog数据库(SQL脚本在resources下的SQL目录)，即可在localhost:8080端口运行该项目
