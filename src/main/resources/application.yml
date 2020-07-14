@@ -3,21 +3,21 @@ spring:
 #    driver-class-name: com.mysql.cj.jdbc.Driver
     driver-class-name: com.p6spy.engine.spy.P6SpyDriver
     url: jdbc:p6spy:mysql://localhost:3306/eblog
-    username: root
-    password: 3570
+    username: username
+    password: password
   redis:
-    host: localhost
+    host: host
     port: 6379
   data:
     elasticsearch:
-      cluster-name:
-      cluster-nodes:
+      cluster-name: cluster-name
+      cluster-nodes: cluster-nodes
       repositories:
         enabled: true
   rabbitmq:
-    username:
-    password:
-    host: localhost
+    username: username
+    password: password
+    host: host
     port: 5672
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**Mapper.xml
