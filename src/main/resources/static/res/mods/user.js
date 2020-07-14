@@ -1,9 +1,3 @@
-/**
-
- @Name: 用户模块
-
- */
- 
 layui.define(['laypage', 'fly', 'element', 'flow'], function(exports){
 
   var $ = layui.jquery;
@@ -76,10 +70,10 @@ layui.define(['laypage', 'fly', 'element', 'flow'], function(exports){
             res.count = res.rows.length;
 
             var rows = layui.sort(res.rows, 'collection_timestamp', 'desc')
-            ,render = function(curr){
+                ,render = function(curr){
               var data = []
-              ,start = curr*nums - nums
-              ,last = start + nums - 1;
+                  ,start = curr*nums - nums
+                  ,last = start + nums - 1;
 
               if(last >= rows.length){
                 last = curr > 1 ? start + (rows.length - start - 1) : rows.length - 1;
@@ -90,7 +84,7 @@ layui.define(['laypage', 'fly', 'element', 'flow'], function(exports){
               }
 
               res.rows = data;
-              
+
               view(res);
             };
 
@@ -222,13 +216,13 @@ layui.define(['laypage', 'fly', 'element', 'flow'], function(exports){
 
     //成效展示
     var effectTpl = ['{{# layui.each(d.data, function(index, item){ }}'
-    ,'<tr>'
+      ,'<tr>'
       ,'<td><a href="/u/{{ item.uid }}" target="_blank" style="color: #01AAED;">{{ item.uid }}</a></td>'
       ,'<td>{{ item.authProduct }}</td>'
       ,'<td>￥{{ item.rmb }}</td>'
       ,'<td>{{ item.create_time }}</td>'
       ,'</tr>'
-    ,'{{# }); }}'].join('');
+      ,'{{# }); }}'].join('');
 
     var effectView = function(res){
       var html = laytpl(effectTpl).render(res);
@@ -297,7 +291,7 @@ layui.define(['laypage', 'fly', 'element', 'flow'], function(exports){
   //我的消息
   gather.minemsg = function(){
     var delAll = $('#LAY_delallmsg')
-    ,tpl = '{{# var len = d.rows.length;\
+        ,tpl = '{{# var len = d.rows.length;\
     if(len === 0){ }}\
       <div class="fly-none">您暂时没有最新消息</div>\
     {{# } else { }}\
@@ -310,13 +304,13 @@ layui.define(['laypage', 'fly', 'element', 'flow'], function(exports){
       {{# } }}\
       </ul>\
     {{# } }}'
-    ,delEnd = function(clear){
+        ,delEnd = function(clear){
       if(clear || dom.minemsg.find('.mine-msg li').length === 0){
         dom.minemsg.html('<div class="fly-none">您暂时没有最新消息</div>');
       }
     }
-    
-    
+
+
     /*
     fly.json('/message/find/', {}, function(res){
       var html = laytpl(tpl).render(res);
@@ -326,7 +320,7 @@ layui.define(['laypage', 'fly', 'element', 'flow'], function(exports){
       }
     });
     */
-    
+
     //阅读后删除
     dom.minemsg.on('click', '.mine-msg li .fly-delete', function(){
       var othis = $(this).parents('li'), id = othis.data('id');
@@ -361,5 +355,5 @@ layui.define(['laypage', 'fly', 'element', 'flow'], function(exports){
   dom.minemsg[0] && gather.minemsg();
 
   exports('user', null);
-  
+
 });

@@ -5,7 +5,9 @@ import cn.hutool.core.map.MapUtil;
 import codedragon.eblog.VO.CommentVo;
 import codedragon.eblog.VO.PostVo;
 import codedragon.eblog.common.lang.Result;
+import codedragon.eblog.config.RabbitConfig;
 import codedragon.eblog.entity.*;
+import codedragon.eblog.search.mq.PostMqIndexMessage;
 import codedragon.eblog.util.ValidationUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -151,12 +153,15 @@ public class PostController extends BaseController {
             postService.updateById(tempPost);
         }
 
+        //通知消息给MQ，告知更新或添加
+        amqpTemplate.convertAndSend(RabbitConfig.ES_EXCHANGE, RabbitConfig.ES_BING_KEY,
+                new PostMqIndexMessage(post.getId(), PostMqIndexMessage.CREATE_OR_UPDATE));
         return Result.success().action("/post" + post.getId());
     }
 
     @ResponseBody
     @Transactional
-    @PostMapping("/post/reply/")
+    @PostMapping("/post/reply")
     public Result reply(Long jid, String content) {
         Assert.notNull(jid, "找不到对应的文章");
         Assert.hasLength(content, "评论内容不能为空");
@@ -240,6 +245,11 @@ public class PostController extends BaseController {
         // 删除相关消息、收藏等
         userMessageService.removeByMap(MapUtil.of("post_id", id));
         userCollectionService.removeByMap(MapUtil.of("post_id", id));
+
+        //通知消息给MQ，告知更新或添加
+        amqpTemplate.convertAndSend(RabbitConfig.ES_EXCHANGE, RabbitConfig.ES_BING_KEY,
+                new PostMqIndexMessage(post.getId(), PostMqIndexMessage.REMOVE));
+
 
         return Result.success().action("/user/index");
     }

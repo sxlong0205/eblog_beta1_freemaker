@@ -2521,6 +2521,368 @@ public class WsServiceImpl implements WsService {
 }
 ```
 
+### Day6
+
+- 添加 ElasticSearch 搜索引擎和 RabbitMQ 消息队列
+
+1. 引入 pom 文件
+
+```xml
+<!--ElasticSearch-->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
+    <version>2.1.1.RELEASE</version>
+</dependency>
+<!--RabbitMQ-->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-amqp</artifactId>
+</dependency>
+<!--Object To Object 工具-->
+<dependency>
+    <groupId>org.modelmapper</groupId>
+    <artifactId>modelmapper</artifactId>
+    <version>1.1.0</version>
+</dependency>
+```
+
+2. 配置 application.yml 文件
+
+```yml
+spring:
+  datasource:
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+    driver-class-name: com.p6spy.engine.spy.P6SpyDriver
+    url: jdbc:p6spy:mysql://localhost:3306/eblog
+    username: root
+    password: 3570
+  redis:
+    host: localhost
+    port: 6379
+  data:
+    elasticsearch:
+      cluster-name:
+      cluster-nodes:
+      repositories:
+        enabled: true
+  rabbitmq:
+    username:
+    password:
+    host:
+    port: 
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**Mapper.xml
+file:
+  upload:
+    dir: ${user.dir}/upload
+```
+
+3. 在 IndexController 中实现 search 方法
+
+```java
+@RequestMapping("/search")
+public String search(String q) {
+
+    IPage pageData = searchService.search(getPage(), q);
+
+    req.setAttribute("q", q);
+    return "search";
+}
+```
+
+4. 编写 search.ftl 页面
+
+```html
+<#include "/inc/layout.ftl" />
+
+<@layout "搜索 - ${q}">
+
+    <#include "/inc/header-panel.ftl" />
+
+    <div class="layui-container">
+        <div class="layui-row layui-col-space15">
+
+            <div class="layui-col-md8">
+                <div class="fly-panel">
+                    <div class="fly-panel-title fly-filter">
+                        <a>您正在搜索关键字 “ ${q} ” - 共有 <strong>${pageData.total}</strong> 条记录</a>
+                        <a href="#signin" class="layui-hide-sm layui-show-xs-block fly-right" id="LAY_goSignin"
+                           style="color: #FF5722;">去签到</a>
+                    </div>
+                    <ul class="fly-list">
+
+                        <#list pageData.records as post>
+                            <@plisting post></@plisting>
+                        </#list>
+                    </ul>
+                    <@paging pageData></@paging>
+                </div>
+            </div>
+
+            <#include "/inc/right.ftl" />
+
+        </div>
+    </div>
+</@layout>
+```
+
+5. 配置 PostDocment 类
+
+```java
+@Data
+@Document(indexName = "post", type = "post", createIndex = true)
+public class PostDocment implements Serializable {
+
+    @Id
+    private Long id;
+
+    //ik分词器
+    @Field(type = FieldType.Text, searchAnalyzer = "ik_smart", analyzer = "ik_max_word")
+    private String title;
+
+    @Field(type = FieldType.Long)
+    private Long authorId;
+
+    @Field(type = FieldType.Keyword)
+    private String authorName;
+    private String authorAvatar;
+
+    private Long categoryId;
+
+    @Field(type = FieldType.Keyword)
+    private String categoryName;
+
+    @Field(type = FieldType.Date)
+    private Date created;
+    private Integer level;
+    private Boolean recomment;
+    private Integer commentCount;
+    private Integer viewCount;
+}
+```
+
+6. 编写 PostRepository 接口
+
+```java
+@Repository
+public interface PostRepository extends ElasticsearchRepository<PostDocment, Long> {
+
+    //符合JPA命名规范的接口
+}
+```
+
+7. 编写 SearchService 接口
+
+```java
+public interface SearchService {
+    IPage search(Page page, String keyword);
+
+    int initEsData(List<PostVo> records);
+
+    void createOrUpdateIndex(PostMqIndexMessage message);
+
+    void removeIndex(PostMqIndexMessage message);
+}
+```
+
+8. 编写 SearchServiceImpl 类 
+
+```java
+@Slf4j
+@Service
+public class SearchServiceImpl implements SearchService {
+
+    @Autowired
+    PostRepository postRepository;
+    @Autowired
+    ModelMapper modelMapper;
+    @Autowired
+    PostService postService;
+
+
+    @Override
+    public IPage search(Page page, String keyword) {
+        //分页信息 mybatisplus的page转成jpa的page
+        Long current = page.getCurrent() - 1;
+        Long size = page.getSize();
+        PageRequest pageable = PageRequest.of(current.intValue(), size.intValue());
+
+        //搜索es得到page
+        //匹配多个字段
+        MultiMatchQueryBuilder multiMatchQueryBuilder = QueryBuilders.multiMatchQuery(keyword, "title", "authorName", "categoryName");
+        org.springframework.data.domain.Page<PostDocment> docments = postRepository.search(multiMatchQueryBuilder, pageable);
+
+        //结果信息 jpa的pageData转成mybatisplus的pageData
+        IPage pageData = new Page(page.getCurrent(), page.getSize(), docments.getTotalElements());
+        pageData.setRecords(docments.getContent());
+        return pageData;
+    }
+
+    @Override
+    public int initEsData(List<PostVo> records) {
+        if (records == null || records.isEmpty())
+            return 0;
+
+        List<PostDocment> docments = new ArrayList<>();
+        for (PostVo vo : records) {
+            //映射转换
+            PostDocment postDocment = modelMapper.map(vo, PostDocment.class);
+            docments.add(postDocment);
+        }
+        postRepository.saveAll(docments);
+        return docments.size();
+    }
+
+    @Override
+    public void createOrUpdateIndex(PostMqIndexMessage message) {
+        Long postId = message.getPostId();
+        PostVo postVo = postService.selectOnePost(new QueryWrapper<Post>().eq("id", postId));
+        PostDocment postDocment = modelMapper.map(postVo, PostDocment.class);
+        postRepository.save(postDocment);
+
+        log.info("es 索引更新成功！ ----> {}", postDocment.toString());
+    }
+
+    @Override
+    public void removeIndex(PostMqIndexMessage message) {
+        Long postId = message.getPostId();
+
+        postRepository.deleteById(postId);
+        log.info("es 索引删除成功！ -----> {}", message.toString());
+    }
+}
+```
+
+9. 在 AdminController 中增加数据同步功能
+
+```java
+@ResponseBody
+@PostMapping("/initEsData")
+public Result initEsData() {
+
+    int size = 10000;
+    Page page = new Page();
+    page.setSize(size);
+
+    long total = 0;
+
+    for (int i = 0; i < 1000; i++) {
+        page.setCurrent(i);
+        IPage<PostVo> paging = postService.paging(page, null, null, null, null, null);
+
+        int num = searchService.initEsData(paging.getRecords());
+
+        total += num;
+
+        //当一页查不出10000条的时候，说明是最后一夜了
+        if (paging.getRecords().size() < size)
+            break;
+    }
+
+    return Result.success("ES索引初始化成功，共" + total + "条记录！", null);
+}
+```
+
+- RabbitMQ 相关配置
+
+1. 编写 RabbitConfig 配置类
+
+```java
+@Configuration
+public class RabbitConfig {
+    public final static String ES_QUEUE = "es_queue";
+    public final static String ES_EXCHANGE = "es_change";
+    public final static String ES_BING_KEY = "es_change";
+
+    @Bean
+    public Queue exQueue() {
+        return new Queue(ES_QUEUE);
+    }
+
+    @Bean
+    DirectExchange exchange() {
+        return new DirectExchange(ES_EXCHANGE);
+    }
+
+    @Bean
+    Binding binding(Queue exQueue, DirectExchange exchange) {
+        return BindingBuilder.bind(exQueue).to(exchange).with(ES_BING_KEY);
+    }
+}
+```
+
+2. 在 PostController 中编写相应的方法
+
+```java
+//通知消息给MQ，告知更新或添加
+amqpTemplate.convertAndSend(RabbitConfig.ES_EXCHANGE, RabbitConfig.ES_BING_KEY,
+        new PostMqIndexMessage(post.getId(), PostMqIndexMessage.REMOVE));
+```
+
+3. 编写 PostMqIndexMessage 类
+
+```java
+@Data
+@AllArgsConstructor
+public class PostMqIndexMessage implements Serializable {
+    public final static String CREATE_OR_UPDATE = "create_update";
+    public final static String REMOVE = "remove";
+
+    private Long postId;
+    private String type;
+}
+```
+
+4. 监听 MQ 编写 MqMessageHandler 类
+
+```java
+@Slf4j
+@Component
+@RabbitListener(queues = RabbitConfig.ES_QUEUE)
+public class MqMessageHandler {
+    @Autowired
+    SearchService searchService;
+
+    @RabbitHandler
+    public void handler(PostMqIndexMessage message) {
+        switch (message.getType()) {
+            case PostMqIndexMessage.CREATE_OR_UPDATE:
+                searchService.createOrUpdateIndex(message);
+                break;
+            case PostMqIndexMessage.REMOVE:
+                searchService.removeIndex(message);
+                break;
+            default:
+                log.error("没找到对应的消息类型，请注意！！！ ---> {}", message.toString());
+                break;
+        }
+    }
+}
+```
+
+5. 在 SearchServiceImpl 编写相应的更新和删除方法
+
+```java
+@Override
+public void createOrUpdateIndex(PostMqIndexMessage message) {
+    Long postId = message.getPostId();
+    PostVo postVo = postService.selectOnePost(new QueryWrapper<Post>().eq("p.id", postId));
+    PostDocment postDocment = modelMapper.map(postVo, PostDocment.class);
+    postRepository.save(postDocment);
+
+    log.info("es 索引更新成功！ ----> {}", postDocment.toString());
+}
+
+@Override
+public void removeIndex(PostMqIndexMessage message) {
+    Long postId = message.getPostId();
+
+    postRepository.deleteById(postId);
+    log.info("es 索引删除成功！ -----> {}", message.toString());
+}
+```
+
 #### 使用说明 
 
 将该项目克隆到本地，修改application.yml文件中的数据库连接信息，创建eblog数据库(SQL脚本在resources下的SQL目录)，即可在localhost:8080端口运行该项目

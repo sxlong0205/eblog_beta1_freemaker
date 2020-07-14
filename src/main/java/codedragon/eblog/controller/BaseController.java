@@ -4,6 +4,7 @@ import codedragon.eblog.service.*;
 import codedragon.eblog.shiro.AccountProfile;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.apache.shiro.SecurityUtils;
+import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.ServletRequestUtils;
 
@@ -26,6 +27,10 @@ public class BaseController {
     CategoryService categoryService;
     @Autowired
     WsService wsService;
+    @Autowired
+    SearchService searchService;
+    @Autowired
+    AmqpTemplate amqpTemplate;
 
     public Page getPage() {
         int pn = ServletRequestUtils.getIntParameter(req, "pn", 1);
